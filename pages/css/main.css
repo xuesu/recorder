@@ -1,0 +1,350 @@
+html,
+body {
+	margin: 0px;
+	padding: 0px;
+	height: 100%;
+	overflow: hidden;
+}
+
+#topContainer{
+	width: 100%;
+}
+
+#myTabContent{
+	width:100%;
+	margin-bottom: 35px;
+}
+
+.toolbar {
+	overflow: hidden;
+	background-color:DodgerBlue;
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	height: 35px;
+	z-index: 3;
+}
+
+.toolbar a {
+	float: left;
+	display: block;
+	color: #f2f2f2;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+	font-size: 17px;
+}
+
+.toolbar a:hover {
+	background: #f1f1f1;
+	color: black;
+}
+
+.center{
+	margin-left: auto;
+	margin-right: auto;
+}
+.bg1:before {
+	z-index: -1;
+	content: "";
+	position: absolute;
+	top: 0; 
+	left: 0;
+	background-image: url("../images/bk1.png");
+	opacity: 0.5;
+	background-position: right, bottom; /* Center the image */
+	background-repeat: no-repeat; /* Do not repeat the image */
+	background-size: cover;
+	width: 100%; 
+	height: 100%;  
+}
+.bg2:before {
+	z-index: -1;
+	content: "";
+	position: absolute;
+	top: 0; 
+	left: 0;
+	background-image: url("../images/bk2.png");
+	opacity: 0.5;
+	background-position: right, bottom; /* Center the image */
+	background-repeat: no-repeat; /* Do not repeat the image */
+	background-size: cover;
+	width: 100%; 
+	height: 100%;  
+}
+.dhx_cal_event div.dhx_footer,
+.dhx_cal_event.past_event div.dhx_footer,
+.dhx_cal_event.event_fact div.dhx_footer,
+.dhx_cal_event.event_spent div.dhx_footer,
+.dhx_cal_event.event_plan div.dhx_footer{
+	background-color: transparent !important;
+}
+.dhx_cal_event .dhx_body{
+	-webkit-transition: opacity 0.1s;
+	transition: opacity 0.1s;
+	opacity: 0.7;
+}
+.dhx_cal_event .dhx_title{
+	line-height: 12px;
+}
+.dhx_cal_event_line:hover,
+.dhx_cal_event:hover .dhx_body,
+.dhx_cal_event.selected .dhx_body,
+.dhx_cal_event.dhx_cal_select_menu .dhx_body{
+	opacity: 1;
+}
+
+.dhx_cal_event.event_spent div,
+.dhx_cal_event_line.event_spent{
+	background-color: #FF5722 !important;
+	border-color: #732d16 !important;
+}
+
+.dhx_cal_event.dhx_cal_editor.event_spent{
+	background-color: #FF5722 !important;
+}
+
+.dhx_cal_event_clear.event_spent{
+	color:#FF5722 !important;
+}
+
+.dhx_cal_event.event_plan div,
+.dhx_cal_event_line.event_plan{
+	background-color: #0FC4A7 !important;
+	border-color: #698490 !important;
+}
+
+.dhx_cal_event.dhx_cal_editor.event_plan{
+	background-color: #0FC4A7 !important;
+}
+
+.dhx_cal_event_clear.event_plan{
+	color:#0FC4A7 !important;
+}
+
+
+.dhx_cal_event.event_failed_plan div,
+.dhx_cal_event_line.event_failed_plan{
+	background-color: #FF6666 !important;
+	border-color: #FFCC99 !important;
+}
+
+.dhx_cal_event.dhx_cal_editor.event_failed_plan{
+	background-color: #FF6666 !important;
+}
+
+.dhx_cal_event_clear.event_failed_plan{
+	color: #FF6666 !important;
+}
+
+.dhx_cal_event.event_fact div,
+.dhx_cal_event_line.event_fact{
+	background-color: #684f8c !important;
+	border-color: #9575CD !important;
+}
+
+.dhx_cal_event.dhx_cal_editor.event_fact{
+	background-color: #684f8c !important;
+}
+
+.dhx_cal_event_clear.event_fact{
+	color:#B82594 !important;
+}
+
+/* The sidebar menu */
+.sidenav {
+	height: 100%; /* Full-height: remove this if you want "auto" height */
+	position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+	top: 0; /* Stay at the top */
+	left: 0;
+	z-index: 2;
+	background-color: DodgerBlue;
+	overflow-x: hidden; /* Disable horizontal scroll */
+	padding-top: 20px;
+	padding-bottom: 35px;
+	width: 0px;
+  }
+  
+  
+  /* The navigation menu links */
+  .sidenav a {
+	display: block;
+	color: #f2f2f2;
+	text-align: center;
+	text-decoration: none;
+	font-size: 17px;
+	padding: 6px 8px 6px 16px;
+  }
+    /* The navigation menu links */
+	.sidenav tr {
+		display: block;
+		color: #f2f2f2;
+		text-decoration: none;
+		font-size: 15px;
+	  }
+	  
+  /* When you mouse over the navigation links, change their color */
+  .sidenav a:hover {
+	background: #f1f1f1;
+	color: black;
+  }
+  
+  
+  /* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
+  @media screen and (max-height: 450px) {
+	.sidenav {padding-top: 15px;}
+	.sidenav a {font-size: 18px;}
+  }
+
+  #dailyCheck {
+    width: 150px;
+    word-break: break-all;
+  }
+
+  .mtransparentTextArea {
+	background: transparent;
+	border-radius: 5px;
+	border: 1px solid DodgerBlue;
+	padding: 5px;
+  }
+
+  #noticeCreateTextArea {
+	width:100%;
+  }
+
+#taskSlidesDivDroup a{
+	display: inline-table;
+	padding: 0;
+}
+
+#taskSlidesDivDroup .mrow{
+	display:table-row;
+	width: 100%;
+}
+
+#timerSlides{
+	text-align: center;
+}
+
+#slideReasonTextArea{
+	width: 70%;
+	vertical-align: middle; 
+	min-height: 50px;
+}
+
+#whiteNoiseSlideBtn:hover {
+    color: #fff;
+    background-color: rgba(255, 176, 97, 0.3);
+    border-color: #204d74;
+}
+
+#whiteNoiseSlideBtn{
+	text-align: center;
+	word-wrap: break-word;
+	width: 30%;
+	vertical-align: middle;
+    color: #fff;
+    border-color: #2e6da4;
+    background-color: rgba(255, 176, 97, 0.6);
+}
+
+#selectedDetailsTextArea{
+	width: 100%; 
+	min-height: 100px;
+	margin-top: 5px;
+}
+
+.noticenav hr{
+    height: 2px;
+    color: snow;
+    border: 2px;
+    border-style: outset;
+    border-width: 2px;
+    border-color: aliceblue;
+}
+
+.noticenav {
+	height: 100%; /* Full-height: remove this if you want "auto" height */
+	position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+	top: 0; /* Stay at the top */
+	right: 0;
+	z-index: 2;
+	background-color: rgba(0, 110, 255, 0.1);
+	overflow-x: hidden; /* Disable horizontal scroll */
+	padding-top: 20px;
+	padding-bottom: 35px;
+	width: 0px;
+  }
+
+  .noticenav a {
+	display: block;
+	color: CornflowerBlue;
+	text-align: center;
+	text-decoration: none;
+	font-size: 17px;
+	padding: 6px 8px 6px 16px;
+  }  
+
+  .noticenav ul {
+	background-color: rgba(255, 255, 255, 0);
+  }
+
+  .noticenav li {
+	background-color: rgba(30, 255, 255, 0.6);
+  }
+  .noticenav .list-group-item-success {
+	background-color: rgba(136, 176, 75, 0.6);
+  }
+  .noticenav .list-group-item-danger {
+	background-color: rgba(255, 111, 97, 0.6);
+  }
+  .noticenav .list-group-item-warning {
+	background-color: rgba(255, 176, 97, 0.6);
+  }
+  .noticenav .list-group-item-info {
+	background-color: rgba(97, 176, 255, 0.6);
+  }
+  .proj_todo_tree_canvas_container{
+	width: 100%;
+	overflow: auto;
+	min-height: 150px;
+  }
+  #projNoteTreeCanvas {
+	  overflow: auto;
+	  min-width: 600px; 
+	  min-height: 600px;
+  }
+  .bell .material-icons { 
+	/* font-size:12rem !important; */
+	/* font-size:36px !important; */
+	font-size:16rem !important;
+  }
+  
+  @keyframes warnflickerAnimation  {
+	0%   { background-color: red; }
+	50%  { background-color: orange; }
+	100% { background-color: red; }
+  }
+  @-o-keyframes warnflickerAnimation {
+	0%   { background-color: red; }
+	50%  { background-color: orange; }
+	100% { background-color: red; }
+  }
+  @-moz-keyframes warnflickerAnimation {
+	0%   { background-color: red; }
+	50%  { background-color: orange; }
+	100% { background-color: red; }
+  }
+  @-webkit-keyframes warnflickerAnimation {
+	0%   { background-color: red; }
+	50%  { background-color: orange; }
+	100% { background-color: red; }
+  }
+  .animateFlicker {
+	 -webkit-animation: warnflickerAnimation 1s infinite;
+	 -moz-animation: warnflickerAnimation 1s infinite;
+	 -o-animation: warnflickerAnimation 1s infinite;
+	  animation: warnflickerAnimation 1s infinite;
+  }
+
+  

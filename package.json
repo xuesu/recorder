@@ -1,0 +1,13 @@
+{
+  "name": "recorder",
+  "version": "0.0.1",
+  "description": "Self used recorder based on dhtmlx-scheduler v5.3.9(https://github.com/DHTMLX/scheduler.git)",
+  "author": "IrisXu",
+  "license": "GPL-2.0",
+  "scripts": {
+    "start": "cd backend && npm install && npm start"
+  },
+  "dependencies": {
+    "csv-parser": "^2.3.3"
+  }
+}
