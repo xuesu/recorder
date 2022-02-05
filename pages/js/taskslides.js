@@ -136,7 +136,7 @@ var taskSlidesModel = {
         var oldTaskID = this.lastAssuredTaskID;
         if(taskID == undefined){
             taskID = this.selectedTaskID();
-        }        
+        }
         if(taskID != oldTaskID){
             var stringbuilder = [];
             var emitTaskID = taskID;
@@ -339,13 +339,20 @@ taskSlidesModel.selectedTask = ko.computed(function(){
     }
     if(sTask != undefined)return sTask;
     return this.EMPTY_TASK;
-}, taskSlidesModel).extend({ deferred: true });
+}, taskSlidesModel); //.extend({ deferred: true })
 
 taskSlidesModel.selectedTaskName = ko.pureComputed(function(){return this.selectedTask().text;}, taskSlidesModel);
 
-taskSlidesModel.selectedTaskDetails = ko.pureComputed(function(){
-    if(this.selectedTask().details != undefined)return this.selectedTask().details; 
-    return "";
+taskSlidesModel.selectedTaskDetails = ko.pureComputed({
+    read: function(){
+        return this.selectedTask().details == undefined? "" :this.selectedTask().details; 
+    },
+    write: function (value) {
+        if(isLegalEventID(this.selectedTaskID())){
+            writeDetailsInBothSchedulerCacheAndDB(this.selectedTaskID(), value);
+        }
+        this.selectedTask().details = value;
+    },
 }, taskSlidesModel);
 
 function myTaskSlideKeydown(event){
