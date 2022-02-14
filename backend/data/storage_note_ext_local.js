@@ -5,7 +5,6 @@ function addTimeTo(start_time, add_year=0, add_month=0, add_day=0, add_hour=0, a
     time0.setTime(start_time.getTime() + add_minute * 60 * 1000 + add_hour * 60 * 60 * 1000 + add_day * 24 * 60 * 60 * 1000);
     if(add_month != 0){
         var new_v = start_time.getMonth() + add_month;
-        console.log(new_v);
         var new_v_t = 0;
         if(new_v < 0 || new_v > 11){
             new_v_t =  Math.floor(new_v / 12);
@@ -102,7 +101,7 @@ class StorageNoteExt {
         }
         else if(type_str.indexOf("month") != -1){
             start_date.setDate(1);
-            end_date = addTimeTo(start_date, 0, 7);
+            end_date = addTimeTo(start_date, 0, 1);
             end_date.setHours(23);
             end_date.setMinutes(30);
         }
