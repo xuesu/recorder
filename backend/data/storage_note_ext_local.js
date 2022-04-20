@@ -38,7 +38,8 @@ function getNoteEventInstanceName(type_str, date_txt_provided) {
         }
         else if(type_str == "weekplan"){
             let start_date = new Date(Date.parse(date_txt_provided));
-            start_date.setDate(start_date.getDate() - (start_date.getDay() + 6) % 7);
+            let dur = start_date.getDay() - 1;
+            start_date = new Date(start_date.valueOf() - dur * 24 * 3600 * 1000);
             date_txt_provided = start_date.format("YYYY-MM-DD");
         }
     }
@@ -94,8 +95,9 @@ class StorageNoteExt {
             end_date.setMinutes(30);
         }
         else if(type_str.indexOf("week") != -1){
-            start_date.setDate(start_date.getDate() - (start_date.getDay() + 6) % 7);
-            end_date.setDate(start_date.getDate() - (start_date.getDay() + 6) % 7 + 6);
+            let dur = start_date.getDay() - 1;
+            start_date = new Date(start_date.valueOf() - dur * 24 * 3600 * 1000);
+            end_date = new Date(start_date.valueOf() + 6 * 24 * 3600 * 1000);
             end_date.setHours(23);
             end_date.setMinutes(30);
         }

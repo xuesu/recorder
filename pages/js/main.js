@@ -649,8 +649,7 @@ function createNotice() {
     var notice_txt_provided = document.getElementById("noticeCreateTextArea").value.trim();
     var notice_level = "info";
     var notice_date_show = new Date();
-    var notice_date_hide = new Date();
-    notice_date_hide.setDate(notice_date_hide.getDate() + 7);
+    var notice_date_hide = new Date(start_date.valueOf() - 7 * 24 * 3600 * 1000);
     var blank_pos = notice_txt_provided.indexOf(" ");
     if (blank_pos == -1 || (notice_txt_provided.indexOf(":") != -1 && notice_txt_provided.indexOf(":") < blank_pos)) {
         blank_pos = notice_txt_provided.indexOf(":");

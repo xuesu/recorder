@@ -378,12 +378,7 @@ class Storage {
 			date_yesterday.setMinutes(0);
 			date_yesterday.setSeconds(0);
 			date_yesterday.setMilliseconds(0);
-			var date_tomorrow = new Date();
-			date_tomorrow.setDate(date_now.getDate() + 1);
-			date_tomorrow.setHours(0);
-			date_tomorrow.setMinutes(0);
-			date_tomorrow.setSeconds(0);
-			date_tomorrow.setMilliseconds(0);
+			var date_tomorrow = new Date(date_yesterday.valueOf() + 24 * 3600 * 1000);
 			for (var i = 0; i < rows.length; i++) {
 				const row = rows[i];
 				row.is_finished = row.is_finished == "true";
@@ -519,19 +514,12 @@ class Storage {
 
 	async updateFailedPlan(date_provided) {
 		date_provided.setHours(0);
-		var date_a_week_ago = new Date();
-		date_a_week_ago.setDate(date_provided.getDate() - 6);
-		date_a_week_ago.setHours(0);
-		date_a_week_ago.setMinutes(0);
-		date_a_week_ago.setSeconds(0);
-		date_a_week_ago.setMilliseconds(0);
+		date_provided.setMinutes(0);
+		date_provided.setSeconds(0);
+		date_provided.setMilliseconds(0);
+		var date_a_week_ago = new Date(date_provided.valueOf() - 6 * 24 * 3600 * 1000);
 		scheduler._min_date = date_a_week_ago;
-		var date_a_day_after = new Date();
-		date_a_day_after.setDate(date_provided.getDate() + 1);
-		date_a_day_after.setHours(0);
-		date_a_day_after.setMinutes(0);
-		date_a_day_after.setSeconds(0);
-		date_a_day_after.setMilliseconds(0);
+		var date_a_day_after = new Date(date_provided.valueOf() + 24 * 3600 * 1000);
 		scheduler._max_date = date_a_day_after;
 		var time_now = Date.now();
 		var promises = [];
@@ -580,7 +568,7 @@ class Storage {
 		var date_provided = new Date(Date.parse(date_txt_provided));
 		await this.updateFailedPlan(date_provided);
 		date_txt_provided = date_provided.format("YYYY-MM-DD");
-		var buf = fs.readFileSync("C:\\Users\\a\\OneDrive\\Documents\\Account.csv", { encoding: 'utf8' });
+		var buf = fs.readFileSync("C:\\Users\\iris\\OneDrive\\Documents\\Account.csv", { encoding: 'utf8' });
 		const lines = buf.split(/\r?\n/);
 		var item = {
 			score: 0,

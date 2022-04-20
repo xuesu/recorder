@@ -1,0 +1,13 @@
+/resume
+/passages
+/samples
+/samples_backend
+/other_plan
+/node_modules
+/backend/node_modules
+
+/.vscode
+
+*.tsv
+*.csv
+*.db
