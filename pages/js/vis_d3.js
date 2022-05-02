@@ -86,9 +86,7 @@ function draw_collapse_tree(max_deep, data, margin = {
 	bottom: 50,
 	left: 200
 }, dx = 60, dy = 300) {
-	console.log(max_deep);
 	var width = max_deep * dy + margin.left + margin.right;
-	console.log(width);
 	const root = d3.hierarchy(data);
 	const diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
 	var tree = d3.tree().nodeSize([dx, dy]);

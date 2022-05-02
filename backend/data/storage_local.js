@@ -568,7 +568,15 @@ class Storage {
 		var date_provided = new Date(Date.parse(date_txt_provided));
 		await this.updateFailedPlan(date_provided);
 		date_txt_provided = date_provided.format("YYYY-MM-DD");
-		var buf = fs.readFileSync("C:\\Users\\iris\\OneDrive\\Documents\\Account.csv", { encoding: 'utf8' });
+		
+		var buf = "";
+		var fpath = "C:\\Users\\iris\\OneDrive\\Documents\\Account.csv";
+		if(fs.existsSync(fpath)){
+			buf = fs.readFileSync(fpath, { encoding: 'utf8' });
+		} else {
+			fpath = "C:\\Users\\a\\OneDrive\\Documents\\Account.csv";
+			buf = fs.readFileSync(fpath, { encoding: 'utf8' });
+		}
 		const lines = buf.split(/\r?\n/);
 		var item = {
 			score: 0,

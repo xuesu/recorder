@@ -514,6 +514,7 @@ function showNote(id) {
                 visProjTODO(data.content);
             } else {
                 document.getElementById("projNoteTreeContainer").setAttribute("style", "display:none;");
+                visProjTODO("");
             }
             changeNoteBtnStatus("ReadMode");
         }
@@ -650,34 +651,15 @@ function createNotice() {
     var notice_level = "info";
     var notice_date_show = new Date();
     var notice_date_hide = new Date(start_date.valueOf() - 7 * 24 * 3600 * 1000);
-    var blank_pos = notice_txt_provided.indexOf(" ");
-    if (blank_pos == -1 || (notice_txt_provided.indexOf(":") != -1 && notice_txt_provided.indexOf(":") < blank_pos)) {
-        blank_pos = notice_txt_provided.indexOf(":");
-    }
-    if (blank_pos != -1) {
-        possible_level_related_word = notice_txt_provided.substr(0, blank_pos).toLowerCase();
-        if (possible_level_related_word == "info" || possible_level_related_word == "warn" || possible_level_related_word == "danger" || possible_level_related_word == "success") {
-            notice_txt_provided = notice_txt_provided.substr(blank_pos + 1).trim();
-            notice_level = possible_level_related_word;
-        }
-    }
-    var fr_pos = notice_txt_provided.indexOf("->");
     var colon_pos = notice_txt_provided.indexOf(":");
-    if (fr_pos != -1 && colon_pos != -1 && fr_pos < colon_pos) {
-        var possible_date_show_related_word = notice_txt_provided.substr(0, fr_pos);
-        var possible_date_show = mystr2date(possible_date_show_related_word);
-        if (possible_date_show != undefined) {
-            notice_date_show = possible_date_show;
-            notice_date_hide = new Date(possible_date_show);
-            notice_date_hide.setDate(notice_date_hide.getDate() + 7);
-        }
-        var possible_date_hide_related_word = notice_txt_provided.substr(fr_pos + 2, colon_pos - fr_pos - 2);
-        var possible_date_hide = mystr2date(possible_date_hide_related_word);
-        if (possible_date_hide != undefined) {
-            notice_date_hide = possible_date_hide;
-        }
-        if (possible_date_show != undefined || possible_date_hide != undefined) {
-            notice_txt_provided = notice_txt_provided.substr(colon_pos + 1).trim();
+    
+    if(colon_pos != -1){
+        var pres = my_parse_line_prefix(line_str.substring(0, colon_pos).trim(), "[level:namestr]-[date_show:mydate|mytimedur]->[date_hide:mydate|mytimedur]", true);
+        if(pres != undefined){
+            notice_date_show = pres.date_show;
+            notice_date_hide = pres.date_hide;
+            notice_level = pres.level;
+            notice_txt_provided = notice_txt_provided.substr(colon_pos).trim();
         }
     }
     if (notice_txt_provided.length == 0) {
@@ -806,9 +788,13 @@ function getCurrentTaskSlides(evs, tnow, only_plan=false){
 
 function visProjTODO(txt) {
     var root = parse_todo_tree(txt);
-    calProcess4visProjTODO(root, root);
     var canvas_element = document.getElementById("projNoteTreeCanvas");
-    displaySimpleTrees([root], canvas_element);
+    if(root == undefined || root.children == undefined || root.children.length == 0){
+        canvas_element.innerHTML = "";
+    }else{
+        calProcess4visProjTODO(root, root);
+        displaySimpleTrees([root], canvas_element);
+    }
 }
 
 function getCurrentDateStr(date_now, with_hour){

@@ -1,34 +1,5 @@
 var note_format_parser = require("../../mmid_pack/mnote_parser");
 
-function addTimeTo(start_time, add_year=0, add_month=0, add_day=0, add_hour=0, add_minute=0){
-    var time0 = new Date(start_time);
-    time0.setTime(start_time.getTime() + add_minute * 60 * 1000 + add_hour * 60 * 60 * 1000 + add_day * 24 * 60 * 60 * 1000);
-    if(add_month != 0){
-        var new_v = start_time.getMonth() + add_month;
-        var new_v_t = 0;
-        if(new_v < 0 || new_v > 11){
-            new_v_t =  Math.floor(new_v / 12);
-            console.log(new_v_t);
-            new_v -= new_v_t * 12;
-            add_year += new_v_t;
-        }
-        time0.setMonth(new_v);
-    }
-    if(add_year != 0){
-        time0.setFullYear(start_time.getFullYear() + add_year);
-    }
-    return time0;
-}
-
-function getStartDateToday(){
-    var date0 = new Date();
-    date0.setHours(0);
-    date0.setMinutes(0);
-    date0.setSeconds(0);
-    date0.setMilliseconds(1);
-    return date0;
-}
-
 function getNoteEventInstanceName(type_str, date_txt_provided) {
     if(date_txt_provided != "example"){
         if(type_str == "monthplan"){
@@ -103,7 +74,7 @@ class StorageNoteExt {
         }
         else if(type_str.indexOf("month") != -1){
             start_date.setDate(1);
-            end_date = addTimeTo(start_date, 0, 1);
+            end_date = note_format_parser.addTimeTo(start_date, 0, 1);
             end_date.setHours(23);
             end_date.setMinutes(30);
         }
