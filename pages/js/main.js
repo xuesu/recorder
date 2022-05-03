@@ -570,6 +570,10 @@ function saveNote() {
     var is_pinned = document.getElementById("notes_ispinned").checked;
     var is_proj_note = document.getElementById("notes_title").value.startsWith("Proj: ");
     var data_content = document.getElementById("notes_content").value;
+    if(is_proj_note){
+        data_content = refix_todo_format(data_content);
+        document.getElementById("notes_content").value = data_content;
+    }
     var data = {
         "title": document.getElementById("notes_title").value,
         "content": data_content,

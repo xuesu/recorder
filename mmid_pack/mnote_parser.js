@@ -67,6 +67,11 @@ function addTimeTo(start_time, add_year=0, add_month=0, add_day=0, add_hour=0, a
 
 
 function mystr2time_dur(s){
+    var res = {};
+    if(s.startsWith("B")){
+        res.begin_from_base = true;
+        s = s.substr(1);
+    }
     var time_ele_strs = ["Y", "Month", "D", "H", "Min"];
     for(var i = 0;i < time_ele_strs.length;i += 1){
         var time_ele_str = time_ele_strs[i];
@@ -78,7 +83,11 @@ function mystr2time_dur(s){
                     break;
                 }
             }
-            if(ok)return {"ele": time_ele_str, "value": parseInt(s.substr(time_ele_str.length))};
+            if(ok){
+                res.ele = time_ele_str;
+                res.value = parseInt(s.substr(time_ele_str.length));
+                return res;
+            }
         }
     }
     return undefined;
@@ -125,17 +134,19 @@ function try_fit_in_types_in_prefix(s, start_ind, ok_types){
                 end_ind = start_ind + 1;
             }
             var show_dot = false;
+            var show_num = false;
             for(var j = end_ind;j < s.length;j+=1){
                 if(s[j] <= '9' && s[j] >= '0'){
+                    show_num = true;
                     end_ind = j + 1;
-                }else if(!show_dot && s[j] == '.' && j + 1 < s.length && (s[j + 1] <= '9' && s[j + 1] >= '0')){
+                }else if(show_num && !show_dot && s[j] == '.' && j + 1 < s.length && (s[j + 1] <= '9' && s[j + 1] >= '0')){
                     show_dot = true;
                     end_ind = j + 1;
                 }else{
                     break;
                 }
             }
-            if(end_ind != start_ind)return {
+            if(show_num && end_ind != start_ind)return {
                 "end_ind": end_ind,
                 "value": parseFloat(s.substring(start_ind, end_ind))
             }
@@ -259,16 +270,21 @@ function parse_todo_line(line_str, treenode_stk, treeinfos, baseday=null){
     if(treenode_stk != undefined && treeinfos != undefined) {
         var tree_level = parseInt(ind / 4);
         if (tree_level > 0) {
+            if(treenode_stk.length < tree_level){
+                console.warn("not aligned correct!", line_str, treenode_stk, tree_level, item);//TO add it into note?
+                item["warn"] = ["not aligned correct!"]
+                tree_level = treenode_stk.length;
+            }
             treenode_stk[tree_level - 1].children.push(item);
         } else {
             treeinfos.push(item);
         }
-        treenode_stk = treenode_stk.slice(0, tree_level);
+        while(treenode_stk.length > tree_level)treenode_stk.pop();
     }
     ind = line_str.indexOf(']') + 1;
     var txt_start_ind = ind;
     if(line_str.indexOf(':') != -1){
-        var pres = my_parse_line_prefix(line_str.substring(ind, line_str.indexOf(":")).trim(), "[score:number], [date_start:mydate|mytimedur]->[date_end:mydate|mytimedur]", true);
+        var pres = my_parse_line_prefix(line_str.substring(ind, line_str.indexOf(":")).trim(), "[score:number], [date_start:mydate|mytimedur]->[date_end:mydate|mytimedur], Pr[priority:number]", true);
         if(pres != undefined){
             item.date_start = pres.date_start;
             item.date_end = pres.date_end;
@@ -284,11 +300,25 @@ function parse_todo_line(line_str, treenode_stk, treeinfos, baseday=null){
                 }
             }
             else if((item.date_start != undefined && item.date_start.ele != undefined) || (item.date_end != undefined && item.date_end.ele != undefined)){
+                if((item.date_start != undefined && item.date_start.ele != undefined && item.date_start.begin_from_base) || 
+                (item.date_end != undefined && item.date_end.ele != undefined && item.date_end.begin_from_base)){
+                    if(baseday == null){
+                        baseday = setToZeroForDate(new Date());
+                    }
+                }
                 if(item.date_start.ele != undefined){
-                    item.date_start = add_time_to_my_time_dur(item.date_end, item.date_start)
+                    if(item.date_start.begin_from_base){
+                        item.date_start = add_time_to_my_time_dur(baseday, item.date_start)
+                    }else{
+                        item.date_start = add_time_to_my_time_dur(item.date_end, item.date_start);
+                    }
                 }
                 else if(item.date_end.ele != undefined){
-                    item.date_end = add_time_to_my_time_dur(item.date_start, item.date_end);
+                    if(item.date_end.begin_from_base){
+                        item.date_end = add_time_to_my_time_dur(baseday, item.date_end)
+                    }else{
+                        item.date_end = add_time_to_my_time_dur(item.date_start, item.date_end);
+                    }
                 }
             }
             item.score = pres.score;
@@ -345,8 +375,44 @@ function parse_todo_tree(txt, collect_non_top_line=false){
     return root;
 }
 
+function refix_todo_format(txt){
+    var lines = txt.split("\n");
+    var todo_line_start_ind = -1;
+    var todo_line_end_ind = lines.length;
+    for (var i = 0; i < lines.length; i += 1) {
+        if (lines[i] == "## TODO") {
+            todo_line_start_ind = i;
+        } else if (todo_line_start_ind != -1 && lines[i].startsWith("## ")) {
+            todo_line_end_ind = i;
+        }
+    }
+    if (todo_line_start_ind == -1) {
+        return undefined;
+    }
+    var treeinfos = [];
+    var treenode_stk = [];
+    for (var i = todo_line_start_ind; i < todo_line_end_ind; i += 1) {
+        var line = lines[i];
+        var todo_fl = is_todo_line(line);
+        if (todo_fl != -1) {
+            var item = parse_todo_line(line, treenode_stk, treeinfos, null);
+            treenode_stk.push(item);
+            if(item.warn != undefined && item.warn.includes("not aligned correct!")){
+                var tree_level = parseInt(line.indexOf('-') / 4);
+                if (tree_level > 0) {
+                    if(treenode_stk.length - 1 < tree_level){
+                        tree_level = treenode_stk.length;
+                    }
+                }
+                lines[i] = "    ".repeat(tree_level) + line.substr(line.indexOf("-"))
+            }
+        }
+    }
+    return lines.join("\n");
+}
+
 if(typeof module != 'undefined'){
     module.exports = {
-        is_todo_line, parse_todo_line, parse_todo_tree, mystr2date, mydate2str
+        is_todo_line, parse_todo_line, parse_todo_tree, mystr2date, mydate2str, refix_todo_format
     };
 }
