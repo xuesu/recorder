@@ -387,7 +387,7 @@ function refix_todo_format(txt){
         }
     }
     if (todo_line_start_ind == -1) {
-        return undefined;
+        return txt;
     }
     var treeinfos = [];
     var treenode_stk = [];
