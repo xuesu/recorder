@@ -647,14 +647,14 @@ function displayNotice(data) {
         tmpli.className = 'list-group-item list-group-item-danger';
     }
     tmpli.innerText = data.text;
-    myNoticeListEle.appendChild(tmpli);
+    myNoticeListEle.insertBefore(tmpli, myNoticeListEle.firstChild);
 }
 
 function createNotice() {
     var notice_txt_provided = document.getElementById("noticeCreateTextArea").value.trim();
     var notice_level = "info";
     var notice_date_show = new Date();
-    var notice_date_hide = new Date(start_date.valueOf() - 7 * 24 * 3600 * 1000);
+    var notice_date_hide = new Date(notice_date_show.valueOf() + 7 * 24 * 3600 * 1000);
     var colon_pos = notice_txt_provided.indexOf(":");
     
     if(colon_pos != -1){

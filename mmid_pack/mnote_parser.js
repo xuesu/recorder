@@ -413,6 +413,6 @@ function refix_todo_format(txt){
 
 if(typeof module != 'undefined'){
     module.exports = {
-        is_todo_line, parse_todo_line, parse_todo_tree, mystr2date, mydate2str, refix_todo_format
+        is_todo_line, parse_todo_line, parse_todo_tree, mystr2date, mydate2str, refix_todo_format, addTimeTo
     };
 }
