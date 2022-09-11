@@ -1,35 +1,8 @@
-function normalStringToElementP(str) {
-	return "<p>" + String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').split("\n").join("</p><p>") + "</p>";
-}
-
-Element.prototype.getElementById = function (id) {
-	return this.querySelector("#" + id);
-}
-
-Element.prototype.getElementsByName = function (name) {
-	return this.querySelectorAll("[name=\"" + name + "\"]");
-}
-
-function showElementById(elementID) {
-	document.getElementById(elementID).setAttribute("style", "visibility: visible;")
-}
-
-function hideElementById(elementID) {
-	document.getElementById(elementID).setAttribute("style", "visibility: hidden;")
-}
-
 function getASTD3TreeNodeName(ast3) {
 	if (ast3.name.length < 10) {
 		return ast3.name;
 	}
 	return ast3.id;
-}
-
-
-function clear_all_info_tr(table_ele) {
-	for (var i = table_ele.getElementsByTagName("tr").length - 1; i >= 0; i--) {
-		table_ele.deleteRow(i);
-	}
 }
 
 function add_info_tr(name, value, table_ele) {
@@ -53,12 +26,31 @@ function add_info_tr(name, value, table_ele) {
 	}
 }
 
-function show_diff_time(x) {
-	var x = Math.floor(x / 1000);
-	var hour = Math.floor(x / 3600);
-	var min = Math.floor((x % 3600) / 60);
-	var sec = Math.floor((x % 3600) % 60);
-	return hour + " hour " + min + " min " + sec + " sec";
+function add_info_tr_ex_with_html(attrname, name, values, table_ele) {
+	var row;
+	var cells = []
+	if (table_ele.getElementsByName(attrname).length > 0) {
+		row = table_ele.getElementsByName(attrname)[0];
+		cells += row.getElementsByTagName("td");
+	} else {
+		row = table_ele.insertRow();
+		row.setAttribute("name", attrname);
+	}
+	for(var i = 0;i < values.length + 1;i += 1){
+		var cell_now = null;
+		if(i >= cells.length){
+			cell_now = row.insertCell(i);
+		}
+		else{
+			cell_now = cells[i];
+		}
+		if(i == 0){
+			cell_now.innerHTML = normalStringToElementP(name);
+		}
+		else{
+			cell_now.innerHTML = values[i - 1];
+		}
+	}
 }
 
 function get_max_deep(funcNode) {

@@ -1,29 +1,3 @@
-function getDetailsInBothSchedulerCacheAndDB(eid, log_lines){
-    var tmp_details = getAccordingEventInSchedulerCache(eid);
-    var detailsLines = tmp_details.details != undefined && tmp_details.details.length > 0 ?tmp_details.details.split("\n"):[];
-    var detailsTitleLineID = -1;
-    var insertedTitleLineID = detailsLines.length;
-    for(var i in detailsLines){
-        if(detailsTitleLineID == -1){
-            if(detailsLines[i] == "## TaskLog"){
-                detailsTitleLineID = i;
-            }
-        }else{
-            if(detailsLines[i].startsWith("## ") || detailsLines[i].startsWith("# ")){
-                insertedTitleLineID = i;
-                break;
-            }
-        }
-    }
-    if(detailsTitleLineID == -1){
-        detailsLines.push("## TaskLog");
-        detailsLines = detailsLines.concat(log_lines);
-    }else{
-        detailsLines = detailsLines.slice(0, insertedTitleLineID).concat(log_lines).concat(detailsLines.slice(insertedTitleLineID));
-    }
-    return detailsLines.join('\n');
-}
-
 var taskSlidesModel = {
     isCountDown: false,
     aimTimeCountDown: ko.observable(Date.now()),
@@ -74,61 +48,7 @@ var taskSlidesModel = {
             this.trySaveLog();
         }
     },
-    trySaveLog: function(forced){
-        if(!forced && this.taskLogLines.length == 0)return;
-        var changed_eid2append_lines = {};
-        var changed_date2append_lines = {};
-        changed_date2append_lines[getCurrentDateStr()] = [];
-        var currentTaskID = this.selectedTaskID();
-        var currentLineNum = this.taskLogLines.length;
-        for(var i = 0;i < currentLineNum;i+=1){
-            var line = this.taskLogLines[i];
-            var linecontent = getCurrentDateStr(new Date(line.emitTime), true) + " " + line.text;
-            if(line.emitTaskID >= 0 && getAccordingEventInSchedulerCache(line.emitTaskID).details != undefined){
-                if(changed_eid2append_lines[line.emitTaskID] != undefined){
-                    changed_eid2append_lines[line.emitTaskID].push(linecontent);
-                }else{
-                    changed_eid2append_lines[line.emitTaskID] = [linecontent];
-                }
-            }
-            var date_str = getCurrentDateStr(new Date(line.emitTime), false);
-            if(changed_date2append_lines[date_str] != undefined){
-                changed_date2append_lines[date_str].push(linecontent);
-            }else{
-                changed_date2append_lines[date_str] = [linecontent];
-            }
-        }
-        var tmppromises = [];
-        for(var changed_date in changed_date2append_lines){
-            tmppromises.push(getOrCreateDailyCheck(changed_date));
-        }
-        this.taskLogLines = this.taskLogLines.slice(currentLineNum);
-        Promise.all(tmppromises).then((resp_data_arr) => {
-            for(var i in resp_data_arr){
-                var eid = resp_data_arr[i].id;
-                if(!resp_data_arr[i].title.startsWith("dailycheck_")){
-                    throw "Get task from getOrCreateDailyCheck with !task.title.startswith(dailycheck_)";
-                }
-                var date_str = resp_data_arr[i].title.substr("dailycheck_".length);
-                var lines = changed_date2append_lines[date_str];
-                if(changed_eid2append_lines[eid] != undefined){
-                    changed_eid2append_lines[eid] = changed_eid2append_lines[eid].concat(lines);
-                }else{
-                    changed_eid2append_lines[eid] = lines;
-                }
-            }
-            var changed_eid2details = {};
-            for(var eid in changed_eid2append_lines){
-                changed_eid2details[eid] = getDetailsInBothSchedulerCacheAndDB(eid, changed_eid2append_lines[eid]);
-            }
-            if(currentTaskID >= 0 && getAccordingEventInSchedulerCache(currentTaskID).details != undefined && changed_eid2append_lines[currentTaskID] == undefined){
-                changed_eid2details[currentTaskID] = getAccordingEventInSchedulerCache(currentTaskID).details;
-            }
-            for(var eid in changed_eid2details){
-                writeDetailsInBothSchedulerCacheAndDB(eid, changed_eid2details[eid]);
-            }
-        });
-    },
+    trySaveLog: null,
     assureCurrentSelected: function(taskID){
         this.stopCountDown();
         this.isWarning(false);
@@ -294,6 +214,91 @@ var taskSlidesModel = {
     }
 };
 
+function getDetailsInBothSchedulerCacheAndDB(eid, log_lines){
+    var tmp_details = getAccordingEventInSchedulerCache(eid);
+    if(tmp_details == null){
+        alert("Taskslides: Cannot find according event in scheduler cache for eid: " + eid);
+    }
+    var detailsLines = tmp_details.details != undefined && tmp_details.details.length > 0 ?tmp_details.details.split("\n"):[];
+    var detailsTitleLineID = -1;
+    var insertedTitleLineID = detailsLines.length;
+    for(var i in detailsLines){
+        if(detailsTitleLineID == -1){
+            if(detailsLines[i] == "## TaskLog"){
+                detailsTitleLineID = i;
+            }
+        }else{
+            if(detailsLines[i].startsWith("## ") || detailsLines[i].startsWith("# ")){
+                insertedTitleLineID = i;
+                break;
+            }
+        }
+    }
+    if(detailsTitleLineID == -1){
+        detailsLines.push("## TaskLog");
+        detailsLines = detailsLines.concat(log_lines);
+    }else{
+        detailsLines = detailsLines.slice(0, insertedTitleLineID).concat(log_lines).concat(detailsLines.slice(insertedTitleLineID));
+    }
+    return detailsLines.join('\n');
+}
+
+taskSlidesModel.trySaveLog = function(forced){
+    if(!forced && this.taskLogLines.length == 0)return;
+    var changed_eid2append_lines = {};
+    var changed_date2append_lines = {};
+    changed_date2append_lines[getCurrentDateStr()] = [];
+    var currentTaskID = this.selectedTaskID();
+    var currentLineNum = this.taskLogLines.length;
+    for(var i = 0;i < currentLineNum;i+=1){
+        var line = this.taskLogLines[i];
+        var linecontent = getCurrentDateStr(new Date(line.emitTime), true) + " " + line.text;
+        if(line.emitTaskID >= 0 && getAccordingEventInSchedulerCache(line.emitTaskID).details != undefined){
+            if(changed_eid2append_lines[line.emitTaskID] != undefined){
+                changed_eid2append_lines[line.emitTaskID].push(linecontent);
+            }else{
+                changed_eid2append_lines[line.emitTaskID] = [linecontent];
+            }
+        }
+        var date_str = getCurrentDateStr(new Date(line.emitTime), false);
+        if(changed_date2append_lines[date_str] != undefined){
+            changed_date2append_lines[date_str].push(linecontent);
+        }else{
+            changed_date2append_lines[date_str] = [linecontent];
+        }
+    }
+    var tmppromises = [];
+    for(var changed_date in changed_date2append_lines){
+        tmppromises.push(getOrCreateDailyCheck(changed_date));
+    }
+    this.taskLogLines = this.taskLogLines.slice(currentLineNum);
+    Promise.all(tmppromises).then((resp_data_arr) => {
+        for(var i in resp_data_arr){
+            var eid = resp_data_arr[i].id;
+            if(!resp_data_arr[i].title.startsWith("dailycheck_")){
+                throw "Get task from getOrCreateDailyCheck with !task.title.startswith(dailycheck_)";
+            }
+            var date_str = resp_data_arr[i].title.substr("dailycheck_".length);
+            var lines = changed_date2append_lines[date_str];
+            if(changed_eid2append_lines[eid] != undefined){
+                changed_eid2append_lines[eid] = changed_eid2append_lines[eid].concat(lines);
+            }else{
+                changed_eid2append_lines[eid] = lines;
+            }
+        }
+        var changed_eid2details = {};
+        for(var eid in changed_eid2append_lines){
+            changed_eid2details[eid] = getDetailsInBothSchedulerCacheAndDB(eid, changed_eid2append_lines[eid]);
+        }
+        if(currentTaskID >= 0 && getAccordingEventInSchedulerCache(currentTaskID).details != undefined && changed_eid2append_lines[currentTaskID] == undefined){
+            changed_eid2details[currentTaskID] = getAccordingEventInSchedulerCache(currentTaskID).details;
+        }
+        for(var eid in changed_eid2details){
+            writeDetailsInBothSchedulerCacheAndDB(eid, changed_eid2details[eid]);
+        }
+    });
+},
+
 taskSlidesModel.countDownV = ko.pureComputed(function(){
     if(this.showedTimeCountDown() >= this.aimTimeCountDown())return "00:00";
     let difT = this.aimTimeCountDown() - this.showedTimeCountDown();
@@ -317,7 +322,7 @@ taskSlidesModel.selectedTask = ko.computed(function(){
     if(String(this.selectedTaskID()).indexOf("#") != -1){
         mySimpleReq("/scheduler/backend/events/", "POST", function(resp){
             if (resp == undefined || resp.error != undefined || resp.action == "error") {
-                alert(JSON.stringify(resp));
+                alert(resp);
             }else{
                 scheduler._loading = true;
                 var oldid = taskSlidesModel.selectedTaskID();
@@ -355,19 +360,16 @@ taskSlidesModel.selectedTaskDetails = ko.pureComputed({
     },
 }, taskSlidesModel);
 
-function myTaskSlideKeydown(event){
-    if (event.keyCode == 37 && event.ctrlKey) { //tab was pressed
+function myTaskSlideKeydown4selectedDetailsTextArea(event){
+    if (event.keyCode == 37 && !event.shiftKey && event.ctrlKey) { //tab was pressed
         taskSlidesModel.changeCurrentTaskSelectedInSlides(-1);
-    }else if (event.keyCode == 38 && event.ctrlKey){
+    }else if (event.keyCode == 38 && !event.shiftKey && event.ctrlKey){
         taskSlidesModel.refreshTaskSlidesRefresh();
-    }else if (event.keyCode == 39 && event.ctrlKey){
+    }else if (event.keyCode == 39 && !event.shiftKey && event.ctrlKey){
         taskSlidesModel.changeCurrentTaskSelectedInSlides(1);
-    }else if (event.keyCode == 40 && event.ctrlKey){
+    }else if (event.keyCode == 40 && !event.shiftKey && event.ctrlKey){
         taskSlidesModel.assureCurrentSelected();
     }
-}
-
-function myTaskSlideKeydown4selectedDetailsTextArea(event){
     if (String.fromCharCode(event.which).toLowerCase() == 's' && event.ctrlKey && event.shiftKey) {
         taskSlidesModel.trySaveLog(true);
     }

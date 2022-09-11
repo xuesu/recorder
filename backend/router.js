@@ -33,6 +33,22 @@ function getNoteType(url, remove_sec_num){
 	throw new Error("unknown note type!");
 }
 
+function getMemQuizTableName(url, remove_sec_num){
+	possible_type_str = url;
+	while(possible_type_str.endsWith("/")){
+		possible_type_str = possible_type_str.substr(0, possible_type_str.length - 1);
+	}
+	while(remove_sec_num > 0 || (possible_type_str.indexOf("/") != -1 && possible_type_str[possible_type_str.lastIndexOf("/") + 1] == '?')){
+		possible_type_str = possible_type_str.substr(0, possible_type_str.lastIndexOf("/"));
+		remove_sec_num -= 1;
+	}
+	possible_type_str = possible_type_str.substr(possible_type_str.lastIndexOf("/") + 1).toLowerCase();
+	if(possible_type_str=="mementry" || possible_type_str == "mementries")return "mementries";
+	if(possible_type_str=="memgroup" || possible_type_str == "memgroups")return "memgroups";
+	if(possible_type_str=="membook" || possible_type_str == "membooks")return "membooks";
+	if(possible_type_str=="memlecture" || possible_type_str == "memlectures")return "memlectures";
+	throw new Error("unknown memquiz type!");
+}
 
 module.exports = {
 	setRoutes (app, prefix, storage) {
@@ -115,6 +131,36 @@ module.exports = {
 	setExpensesRoutes (app, prefix, storage) {
 		app.get(`${prefix}/:date_txt_provided`, callMethod((req) => {
 			return storage.refreshExpenses(req.params.date_txt_provided);
+		}));
+	},
+	setMemQuizRoutes(app, prefix, storage){
+		app.get(`${prefix}/:id`, callMethod((req) => {
+			type_str = getMemQuizTableName(req.url, 1);
+			return storage.getOneByID(type_str, req.params.id);
+		}));
+		app.get(`${prefix}`, callMethod((req) => {
+			type_str = getMemQuizTableName(req.url, 0);
+			return storage.getAll(type_str, req.query);
+		}));
+
+		app.post(`${prefix}`, callMethod((req) => {
+			type_str = getMemQuizTableName(req.url, 0);
+			return storage.insert(type_str, req.body);
+		}));
+
+		app.put(`${prefix}/:id`, callMethod((req) => {
+			type_str = getMemQuizTableName(req.url, 1);
+			return storage.update(type_str, req.params.id, req.body);
+		}));
+
+		app.delete(`${prefix}/:id`, callMethod((req) => {
+			type_str = getMemQuizTableName(req.url, 1);
+			return storage.delete(type_str, req.params.id);
+		}));
+	},
+	setMemQuizCSVImportRoutes(app, prefix, storage){
+		app.post(`${prefix}`, callMethod((req) => {
+			return storage.importEntriesByCSV(req.body.fcontent, req.body.lecture_id);
 		}));
 	}
 };

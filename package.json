@@ -8,6 +8,7 @@
     "start": "cd backend && npm install && npm start"
   },
   "dependencies": {
+    "csv-parse": "^5.3.0",
     "csv-parser": "^2.3.3"
   }
 }

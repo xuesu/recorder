@@ -18,15 +18,10 @@ function getNoteEventInstanceName(type_str, date_txt_provided) {
 }
 
 class StorageNoteExt {
-	constructor(event_storage, note_storage, collection, params) {
+	constructor(event_storage, note_storage, params) {
         this._event_storage = event_storage;
         this._note_storage = note_storage;
 		this._params = params || {};
-		if (collection) {
-			collection.forEach(item => {
-				this.insert(item);
-			});
-		}
     }
 	
     async getNoteEventExampleStr(type_str) {

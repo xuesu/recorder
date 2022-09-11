@@ -29,6 +29,33 @@ async function mySimpleReq(url, method, callback, data = {}) {
         });
 }
 
+async function myCORSReq(url, method, callback, data = {}) {
+    var payload = {
+        method: method,
+        cache: 'no-cache',
+        headers: {
+            'Content-Type': 'application/json',
+            "Access-Control-Allow-Origin": "http://127.0.0.1:9200/",
+            "Access-Control-Allow-Methods": ["GET", "POST"],
+        },
+        redirect: 'error'
+    };
+    if (method == "POST" || method == "PUT") {
+        payload.body = JSON.stringify(data);
+    }
+    await fetch(url, payload)
+        .then(resp => resp.json())
+        .then(x => callback(x))
+        .catch((error) => {
+            err_msg = error;
+            if (typeof error != "string") {
+                err_msg = String(error);
+            }
+            alert(err_msg);
+            console.error(error)
+        });
+}
+
 function removeElementFromParentByDisplayID(pele, displayID) {
     for (var cid = 0; cid < pele.children.length; cid += 1) {
         var cele = pele.children[cid];
@@ -143,6 +170,38 @@ function myNoteTextAreaKeydown(event) {
     }
 }
 
+function getOrCreateDailyCheck(date_txt_provided){
+    return new Promise((resolve, reject) => {
+        mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "GET", 
+            (resp) => {
+                if (resp == undefined || resp.error != undefined || resp.action == "error") {
+                    reject(resp);
+                } else if(resp.data == undefined || resp.data.id == undefined){
+                    resolve(undefined);
+                }else{
+                    resolve(resp.data);
+                }
+            });
+    }).then((resp_data)=>{
+        if(resp_data == undefined){
+            return new Promise((resolve, reject) => 
+                mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "POST", 
+                (resp) => {
+                    if (resp == undefined || resp.error != undefined || resp.action == "error") {
+                        reject(resp);
+                    } else {
+                        scheduler._loading = true;
+                        scheduler.addEvent(resp.item);
+                        scheduler._loading = false;
+                        resolve(resp.data);
+                    }
+            })).then((resp_data1) => {return resp_data1;});
+        }else{
+            return resp_data;
+        }
+    });
+}
+
 function queryDailyCheck() {
     var date_txt_provided = document.getElementById("dailyCheckDate").value;
     if (date_txt_provided.length == 0) {
@@ -151,7 +210,7 @@ function queryDailyCheck() {
     }
     mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert(resp);
         } else if (resp.data == undefined) {
             changeDailyCheckBtnStatus("create");
         } else {
@@ -169,7 +228,7 @@ function createDailyCheck() {
     }
     mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "POST", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert(resp);
             changeDailyCheckBtnStatus("create");
         } else {
             changeDailyCheckBtnStatus("view");
@@ -188,7 +247,7 @@ function deleteDailyCheck() {
         return;
     } else {
         mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "DELETE", (respText) => {
-            alert(JSON.stringify(respText));
+            alert(respText);
             changeDailyCheckBtnStatus("create");
             if(noteExtMode == "dailycheck"){
                 clearNote();
@@ -204,7 +263,7 @@ function simpleCreateCheck(date_txt_provided, mode_str){
     }
     mySimpleReq("/scheduler/backend/" + mode_str + "/" + date_txt_provided, "POST", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert(resp);
         }
     });
 
@@ -218,7 +277,7 @@ function queryMonthPlan() {
     }
     mySimpleReq("/scheduler/backend/monthplan/" + date_txt_provided, "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert(resp);
         } 
          else {
 
@@ -234,7 +293,7 @@ function createMonthPlan() {
     }
     mySimpleReq("/scheduler/backend/monthplan/" + date_txt_provided, "POST", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert(resp);
         } 
         else if(noteExtMode == "monthplan"){
             showNoteEx();
@@ -249,7 +308,7 @@ function deleteMonthPlan() {
         return;
     } else {
         mySimpleReq("/scheduler/backend/monthplan/" + date_txt_provided, "DELETE", (respText) => {
-            alert(JSON.stringify(respText));
+            alert(respText);
             if(noteExtMode == "monthplan"){
                 clearNote();
             }
@@ -265,7 +324,7 @@ function queryWeekPlan() {
     }
     mySimpleReq("/scheduler/backend/weekplan/" + date_txt_provided, "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert(resp);
         } 
          else {
 
@@ -281,7 +340,7 @@ function createWeekPlan() {
     }
     mySimpleReq("/scheduler/backend/weekplan/" + date_txt_provided, "POST", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert(resp);
         } 
         else if(noteExtMode == "weekplan"){
             showNoteEx();
@@ -296,7 +355,7 @@ function deleteWeekPlan() {
         return;
     } else {
         mySimpleReq("/scheduler/backend/weekplan/" + date_txt_provided, "DELETE", (respText) => {
-            alert(JSON.stringify(respText));
+            alert(respText);
             if(noteExtMode == "weekplan"){
                 clearNote();
             }
@@ -334,25 +393,6 @@ function openOrCloseNav(navid) {
         }
         if(navid == "myNoticenav"){
             document.getElementById("myTabContent").style.paddingRight = "200px";
-        }
-    }
-}
-
-function setNoteID(idSelected_, noteExtMode_){
-    if(noteExtMode != noteExtMode_){
-        if(noteExtMode_ != "" && noteExtMode_ != "monthplan"  && noteExtMode_ != "weekplan" && noteExtMode_ != "dailycheck"){
-            alert("unknown noteExtMode " + noteExtMode_);
-            noteExtMode_ = "";
-        }
-        noteExtMode = noteExtMode_;
-        clearNote();
-        $("#noteExtModeInput").val(noteExtMode);
-    }
-    if(idSelected != idSelected_){
-        idSelected = idSelected_;
-        $("#idSelectedInput").val(idSelected);
-        if(idSelected == -1){
-            clearNote();
         }
     }
 }
@@ -396,48 +436,10 @@ function changeNoteBtnStatus(op) {
     }
 }
 
-function showNoteTitles() {
-    mySimpleReq("/scheduler/backend/notes_titles/", "GET", (resp) => {
-        var rows = resp.data;
-        var myNotesToggleGroupEle = document.getElementById("myNotesToggleGroup");
-        myNotesToggleGroupEle.innerHTML = "";
-        for (var i = 0; i < rows.length; i++) {
-            var tmpa = document.createElement("a");
-            tmpa.setAttribute("href", "javascript:void(0)");
-            tmpa.innerText = rows[i].title;
-            tmpa.setAttribute("onclick", "showNote(" + rows[i].id + ")");
-            myNotesToggleGroupEle.appendChild(tmpa);
-        }
-    });
-}
-
 function clearNote(){
     document.getElementById("notes_content").value = "";
     document.getElementById("notes_title").value = "";
     changeNoteBtnStatus("CreateMode");
-}
-
-function newNoteEx(){
-    clearNote();
-    if(getIdentity4NoteEx() != undefined){
-        if(noteExtMode == "monthplan"){
-            createMonthPlan();
-        }else if(noteExtMode == "weekplan"){
-            createWeekPlan();
-        }else if(noteExtMode == "dailycheck"){
-            createDailyCheck();
-        }
-    }
-}
-
-function getDateTxtProvidedFromNotesTitle(){
-    let title = document.getElementById("notes_title").value;
-    if(!title.startsWith(noteExtMode + "_")){
-        alert("unexcepted note title for mode" + noteExtMode);
-        return;
-    }
-    date_txt_provided = title.substr(noteExtMode.length + 1);
-    return date_txt_provided;
 }
 
 function getIdentity4NoteEx(){
@@ -454,117 +456,18 @@ function getIdentity4NoteEx(){
     }
 }
 
-function saveNoteEx(){
-    if(noteExtMode == ""){
-        return saveNote();
-    }
-    else if(noteExtMode == "dailycheck" || noteExtMode == "weekplan" || noteExtMode == "monthplan"){
-        let date_txt_provided = getDateTxtProvidedFromNotesTitle();
-        if(date_txt_provided != undefined){
-            var data_content = document.getElementById("notes_content").value;
-            mySimpleReq("/scheduler/backend/" + noteExtMode + "/" + date_txt_provided, "POST", (resp) => {
-                alert(JSON.stringify(resp));
-                if(noteExtMode == 'dailycheck'){
-                    if (resp.data == undefined) {
-                        changeDailyCheckBtnStatus("create");
-                    } else {
-                        changeDailyCheckBtnStatus("view");
-                        displayDailyCheckInTable(resp.data.content, "dailyCheckContent", date_txt_provided, just_append=false, edit_disable=true);
-                    }
-                }
-            }, data = {"text": data_content});
+function newNoteEx(){
+    clearNote();
+    if(getIdentity4NoteEx() != undefined){
+        if(noteExtMode == "monthplan"){
+            createMonthPlan();
+        }else if(noteExtMode == "weekplan"){
+            createWeekPlan();
+        }else if(noteExtMode == "dailycheck"){
+            createDailyCheck();
         }
     }
-    else{
-        alert("unknown mode!");
-    }
 }
-function deleteNoteEx(){
-    if(noteExtMode == ""){
-        return deleteNote();
-    }
-    else if(noteExtMode == "dailycheck"){
-        return deleteDailyCheck();
-    }
-    else if(noteExtMode == "weekplan"){
-        return deleteWeekPlan();
-    }
-    else if(noteExtMode == "monthplan"){
-        return deleteMonthPlan();
-    }
-}
-
-function showNote(id) {
-    if (id == -1) {
-        alert("Please select a ok id!");
-        return;
-    }
-    setNoteID(id, "");
-    $("a[href='#notes_tab']").tab("show");
-    mySimpleReq("/scheduler/backend/notes/" + id, "GET", (resp) => {
-        var data = resp.data;
-        if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
-        } else {
-            document.getElementById("notes_title").value = data.title;
-            document.getElementById("notes_content").value = data.content;
-            document.getElementById("notes_ispinned").checked = data.is_pinned == "true";
-            if (data.is_proj_note == "true") {
-                document.getElementById("projNoteTreeContainer").setAttribute("style", "");
-                visProjTODO(data.content);
-            } else {
-                document.getElementById("projNoteTreeContainer").setAttribute("style", "display:none;");
-                visProjTODO("");
-            }
-            changeNoteBtnStatus("ReadMode");
-        }
-    });
-}
-
-function showNoteEx(){
-    if(noteExtMode == ""){
-        if(idSelected != -1){
-            showNote(idSelected);
-        }else{
-            clearNote();
-        }
-    }
-    else if(noteExtMode == "dailycheck" || noteExtMode == "weekplan" || noteExtMode == "monthplan"){
-        if(getIdentity4NoteEx() != undefined){
-            var date_txt_provided = getIdentity4NoteEx();
-            mySimpleReq("/scheduler/backend/" + noteExtMode + "/" + date_txt_provided, "GET", (resp) => {
-                var data = resp.data;
-                if (resp == undefined || resp.error != undefined || resp.action == "error") {
-                    alert(JSON.stringify(resp));
-                } 
-                else if(data == undefined){
-                    alert(noteExtMode + "_" + date_txt_provided + " does not exist!");
-                }
-                else {
-                    document.getElementById("notes_title").value = data.title;
-                    document.getElementById("notes_content").value = data.content;
-                    changeNoteBtnStatus("ReadMode");
-                    if(noteExtMode == "dailycheck"){
-                        displayDailyCheckInTable(data.content, "dailyCheckContent", document.getElementById("dailyCheckDate").value, just_append=false, edit_disable=true);
-                    }
-                }
-            });
-        }else{
-            clearNote();
-        }
-    }
-
-}
-
-function editNoteEx() {
-    if (document.getElementById("notes_content").getAttribute("readonly") == "true") {
-        if (getIdentity4NoteEx() == undefined) changeNoteBtnStatus("CreateMode");
-        else changeNoteBtnStatus("EditMode");
-    } else {
-        changeNoteBtnStatus("ReadMode");
-    }
-}
-
 
 function saveNote() {
     var is_pinned = document.getElementById("notes_ispinned").checked;
@@ -582,7 +485,7 @@ function saveNote() {
     };
     var callbackfn = function (resp) {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert(resp);
         } else {
             if (idSelected == -1) {
                 idSelected = resp.tid;
@@ -594,7 +497,7 @@ function saveNote() {
                     document.getElementById("myNotesToggleGroup").appendChild(tmpa);
                 }
             }
-            alert(JSON.stringify(resp));
+            alert(resp);
             if (is_proj_note) {
                 document.getElementById("projNoteTreeContainer").setAttribute("style", "");
                 visProjTODO(data_content);
@@ -610,100 +513,89 @@ function saveNote() {
     }
 }
 
-function deleteNote() {
-    if (idSelected == -1) {
-        alert("Please select a ok id!");
-    } else {
-        mySimpleReq("/scheduler/backend/notes/" + idSelected, "DELETE", (resp) => { alert(JSON.stringify(resp)); });
-    }
-}
-function loadExpenses() {
-    var date_txt_provided = document.getElementById("dailyCheckDate").value;
-    if (date_txt_provided.length == 0) {
-        alert("Please select a date!");
-        return;
-    } else {
-        mySimpleReq("/scheduler/backend/expenses/" + date_txt_provided, "GET", (data) => {
-            if (data.error != undefined || data.action == "error") {
-                alert("Something wrong!" + JSON.stringify(data));
-            } else {            
-                scheduler.load("/scheduler/backend/events", function(){alert("OK.");});
-            }
-        });
-    }
-}
-
-function displayNotice(data) {
-    var myNoticeListEle = document.getElementById("myNoticeList");
-    var tmpli = document.createElement("li");
-    tmpli.className = 'list-group-item';
-    if (data.info_level == "info") {
-        tmpli.className = 'list-group-item list-group-item-info';
-    } else if (data.info_level == "success") {
-        tmpli.className = 'list-group-item list-group-item-success';
-    } else if (data.info_level == "warn") {
-        tmpli.className = 'list-group-item list-group-item-warning';
-    } else if (data.info_level == "danger") {
-        tmpli.className = 'list-group-item list-group-item-danger';
-    }
-    tmpli.innerText = data.text;
-    myNoticeListEle.insertBefore(tmpli, myNoticeListEle.firstChild);
-}
-
-function createNotice() {
-    var notice_txt_provided = document.getElementById("noticeCreateTextArea").value.trim();
-    var notice_level = "info";
-    var notice_date_show = new Date();
-    var notice_date_hide = new Date(notice_date_show.valueOf() + 7 * 24 * 3600 * 1000);
-    var colon_pos = notice_txt_provided.indexOf(":");
-    
-    if(colon_pos != -1){
-        var pres = my_parse_line_prefix(line_str.substring(0, colon_pos).trim(), "[level:namestr]-[date_show:mydate|mytimedur]->[date_hide:mydate|mytimedur]", true);
-        if(pres != undefined){
-            notice_date_show = pres.date_show;
-            notice_date_hide = pres.date_hide;
-            notice_level = pres.level;
-            notice_txt_provided = notice_txt_provided.substr(colon_pos).trim();
-        }
-    }
-    if (notice_txt_provided.length == 0) {
-        alert("Please input sth4notice!");
+function getDateTxtProvidedFromNotesTitle(){
+    let title = document.getElementById("notes_title").value;
+    if(!title.startsWith(noteExtMode + "_")){
+        alert("unexcepted note title for mode" + noteExtMode);
         return;
     }
-    var data = {
-        "date_show": mydate2str(notice_date_show),
-        "date_hide": mydate2str(notice_date_hide),
-        "info_level": notice_level,
-        "text": notice_txt_provided,
-    };
-    var callbackfn = function (resp) {
-        if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
-        } else {
-            data.id = resp.tid;
-            document.getElementById("noticeCreateTextArea").value = "";
-            displayNotice(data);
-        }
-    }
-    mySimpleReq("/scheduler/backend/notices/", "POST", (resp) => callbackfn(resp), data = data);
+    date_txt_provided = title.substr(noteExtMode.length + 1);
+    return date_txt_provided;
 }
 
-function loadNotices() {
-    mySimpleReq("/scheduler/backend/notices/", "GET", (resp) => {
+function saveNoteEx(){
+    if(noteExtMode == ""){
+        return saveNote();
+    }
+    else if(noteExtMode == "dailycheck" || noteExtMode == "weekplan" || noteExtMode == "monthplan"){
+        let date_txt_provided = getDateTxtProvidedFromNotesTitle();
+        if(date_txt_provided != undefined){
+            var data_content = document.getElementById("notes_content").value;
+            mySimpleReq("/scheduler/backend/" + noteExtMode + "/" + date_txt_provided, "POST", (resp) => {
+                alert(resp);
+                if(noteExtMode == 'dailycheck'){
+                    if (resp.data == undefined) {
+                        changeDailyCheckBtnStatus("create");
+                    } else {
+                        changeDailyCheckBtnStatus("view");
+                        displayDailyCheckInTable(resp.data.content, "dailyCheckContent", date_txt_provided, just_append=false, edit_disable=true);
+                    }
+                }
+            }, data = {"text": data_content});
+        }
+    }
+    else{
+        alert("unknown mode!");
+    }
+}
+
+function deleteNoteEx(){
+    if(noteExtMode == ""){
+        return deleteNote();
+    }
+    else if(noteExtMode == "dailycheck"){
+        return deleteDailyCheck();
+    }
+    else if(noteExtMode == "weekplan"){
+        return deleteWeekPlan();
+    }
+    else if(noteExtMode == "monthplan"){
+        return deleteMonthPlan();
+    }
+}
+
+function setNoteID(idSelected_, noteExtMode_){
+    if(noteExtMode != noteExtMode_){
+        if(noteExtMode_ != "" && noteExtMode_ != "monthplan"  && noteExtMode_ != "weekplan" && noteExtMode_ != "dailycheck"){
+            alert("unknown noteExtMode " + noteExtMode_);
+            noteExtMode_ = "";
+        }
+        noteExtMode = noteExtMode_;
+        clearNote();
+        $("#noteExtModeInput").val(noteExtMode);
+    }
+    if(idSelected != idSelected_){
+        idSelected = idSelected_;
+        $("#idSelectedInput").val(idSelected);
+        if(idSelected == -1){
+            clearNote();
+        }
+    }
+}
+
+function showNoteTitles() {
+    mySimpleReq("/scheduler/backend/notes_titles/", "GET", (resp) => {
         var rows = resp.data;
-        var myNoticeListEle = document.getElementById("myNoticeList");
-        myNoticeListEle.innerHTML = "";
+        var myNotesToggleGroupEle = document.getElementById("myNotesToggleGroup");
+        myNotesToggleGroupEle.innerHTML = "";
         for (var i = 0; i < rows.length; i++) {
-            displayNotice(rows[i]);
+            var tmpa = document.createElement("a");
+            tmpa.setAttribute("href", "javascript:void(0)");
+            tmpa.innerText = rows[i].title;
+            tmpa.setAttribute("onclick", "showNote(" + rows[i].id + ")");
+            myNotesToggleGroupEle.appendChild(tmpa);
         }
     });
-}
-
-function dailyCheckDateChange(event){
-    if(noteExtMode != ""){
-        showNoteEx();
-    }
-
 }
 
 function calProcess4visProjTODO(item, fa_item) {
@@ -761,6 +653,184 @@ function calProcess4visProjTODO(item, fa_item) {
 
 }
 
+function visProjTODO(txt) {
+    var root = parse_todo_tree(txt);
+    var canvas_element = document.getElementById("projNoteTreeCanvas");
+    if(root == undefined || root.children == undefined || root.children.length == 0){
+        canvas_element.innerHTML = "";
+    }else{
+        calProcess4visProjTODO(root, root);
+        displaySimpleTrees([root], canvas_element);
+    }
+}
+
+function showNote(id) {
+    if (id == -1) {
+        alert("Please select a ok id!");
+        return;
+    }
+    setNoteID(id, "");
+    $("a[href='#notes_tab']").tab("show");
+    mySimpleReq("/scheduler/backend/notes/" + id, "GET", (resp) => {
+        var data = resp.data;
+        if (resp == undefined || resp.error != undefined || resp.action == "error") {
+            alert(resp);
+        } else {
+            document.getElementById("notes_title").value = data.title;
+            document.getElementById("notes_content").value = data.content;
+            document.getElementById("notes_ispinned").checked = data.is_pinned == "true";
+            if (data.is_proj_note == "true") {
+                document.getElementById("projNoteTreeContainer").setAttribute("style", "");
+                visProjTODO(data.content);
+            } else {
+                document.getElementById("projNoteTreeContainer").setAttribute("style", "display:none;");
+                visProjTODO("");
+            }
+            changeNoteBtnStatus("ReadMode");
+        }
+    });
+}
+
+function showNoteEx(){
+    if(noteExtMode == ""){
+        if(idSelected != -1){
+            showNote(idSelected);
+        }else{
+            clearNote();
+        }
+    }
+    else if(noteExtMode == "dailycheck" || noteExtMode == "weekplan" || noteExtMode == "monthplan"){
+        if(getIdentity4NoteEx() != undefined){
+            var date_txt_provided = getIdentity4NoteEx();
+            mySimpleReq("/scheduler/backend/" + noteExtMode + "/" + date_txt_provided, "GET", (resp) => {
+                var data = resp.data;
+                if (resp == undefined || resp.error != undefined || resp.action == "error") {
+                    alert(resp);
+                } 
+                else if(data == undefined){
+                    alert(noteExtMode + "_" + date_txt_provided + " does not exist!");
+                }
+                else {
+                    document.getElementById("notes_title").value = data.title;
+                    document.getElementById("notes_content").value = data.content;
+                    changeNoteBtnStatus("ReadMode");
+                    if(noteExtMode == "dailycheck"){
+                        displayDailyCheckInTable(data.content, "dailyCheckContent", document.getElementById("dailyCheckDate").value, just_append=false, edit_disable=true);
+                    }
+                }
+            });
+        }else{
+            clearNote();
+        }
+    }
+
+}
+
+function dailyCheckDateChange(event){
+    if(noteExtMode != ""){
+        showNoteEx();
+    }
+}
+
+function editNoteEx() {
+    if (document.getElementById("notes_content").getAttribute("readonly") == "true") {
+        if (getIdentity4NoteEx() == undefined) changeNoteBtnStatus("CreateMode");
+        else changeNoteBtnStatus("EditMode");
+    } else {
+        changeNoteBtnStatus("ReadMode");
+    }
+}
+
+function deleteNote() {
+    if (idSelected == -1) {
+        alert("Please select a ok id!");
+    } else {
+        mySimpleReq("/scheduler/backend/notes/" + idSelected, "DELETE", (resp) => { alert(resp); });
+    }
+}
+
+function loadExpenses() {
+    var date_txt_provided = document.getElementById("dailyCheckDate").value;
+    if (date_txt_provided.length == 0) {
+        alert("Please select a date!");
+        return;
+    } else {
+        mySimpleReq("/scheduler/backend/expenses/" + date_txt_provided, "GET", (data) => {
+            if (data.error != undefined || data.action == "error") {
+                alert("Something wrong!", data);
+            } else {            
+                scheduler.load("/scheduler/backend/events", function(){alert("OK.");});
+            }
+        });
+    }
+}
+
+function displayNotice(data) {
+    var myNoticeListEle = document.getElementById("myNoticeList");
+    var tmpli = document.createElement("li");
+    tmpli.className = 'list-group-item';
+    if (data.info_level == "info") {
+        tmpli.className = 'list-group-item list-group-item-info';
+    } else if (data.info_level == "success") {
+        tmpli.className = 'list-group-item list-group-item-success';
+    } else if (data.info_level == "warn") {
+        tmpli.className = 'list-group-item list-group-item-warning';
+    } else if (data.info_level == "danger") {
+        tmpli.className = 'list-group-item list-group-item-danger';
+    }
+    tmpli.innerText = data.text;
+    myNoticeListEle.insertBefore(tmpli, myNoticeListEle.firstChild);
+}
+
+function createNotice() {
+    var notice_txt_provided = document.getElementById("noticeCreateTextArea").value.trim();
+    var notice_level = "info";
+    var notice_date_show = new Date();
+    var notice_date_hide = new Date(notice_date_show.valueOf() + 7 * 24 * 3600 * 1000);
+    var colon_pos = notice_txt_provided.indexOf(":");
+    
+    if(colon_pos != -1){
+        var pres = my_parse_line_prefix(line_str.substring(0, colon_pos).trim(), "[level:namestr]-[date_show:mydate|mytimedur]->[date_hide:mydate|mytimedur]", true);
+        if(pres != undefined){
+            notice_date_show = pres.date_show;
+            notice_date_hide = pres.date_hide;
+            notice_level = pres.level;
+            notice_txt_provided = notice_txt_provided.substr(colon_pos).trim();
+        }
+    }
+    if (notice_txt_provided.length == 0) {
+        alert("Please input sth4notice!");
+        return;
+    }
+    var data = {
+        "date_show": mydate2str(notice_date_show),
+        "date_hide": mydate2str(notice_date_hide),
+        "info_level": notice_level,
+        "text": notice_txt_provided,
+    };
+    var callbackfn = function (resp) {
+        if (resp == undefined || resp.error != undefined || resp.action == "error") {
+            alert(resp);
+        } else {
+            data.id = resp.tid;
+            document.getElementById("noticeCreateTextArea").value = "";
+            displayNotice(data);
+        }
+    }
+    mySimpleReq("/scheduler/backend/notices/", "POST", (resp) => callbackfn(resp), data = data);
+}
+
+function loadNotices() {
+    mySimpleReq("/scheduler/backend/notices/", "GET", (resp) => {
+        var rows = resp.data;
+        var myNoticeListEle = document.getElementById("myNoticeList");
+        myNoticeListEle.innerHTML = "";
+        for (var i = 0; i < rows.length; i++) {
+            displayNotice(rows[i]);
+        }
+    });
+}
+
 function isLegalEventID(id){
     return id > 0 && String(id).indexOf("#") == -1;
 }
@@ -790,58 +860,6 @@ function getCurrentTaskSlides(evs, tnow, only_plan=false){
 	return stack;
 }
 
-function visProjTODO(txt) {
-    var root = parse_todo_tree(txt);
-    var canvas_element = document.getElementById("projNoteTreeCanvas");
-    if(root == undefined || root.children == undefined || root.children.length == 0){
-        canvas_element.innerHTML = "";
-    }else{
-        calProcess4visProjTODO(root, root);
-        displaySimpleTrees([root], canvas_element);
-    }
-}
-
-function getCurrentDateStr(date_now, with_hour){
-    if(date_now == undefined)date_now = new Date();
-	var date_str = date_now.getFullYear() + "-" + String(date_now.getMonth() + 1).padStart(2, '0') + "-" + String(date_now.getDate()).padStart(2, '0');
-    if(with_hour){
-        date_str += " " + String(date_now.getHours()).padStart(2, '0') + ":" +  String(date_now.getMinutes()).padStart(2, '0');
-    }
-    return date_str;
-}
-
-function getOrCreateDailyCheck(date_txt_provided){
-    return new Promise((resolve, reject) => {
-        mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "GET", 
-            (resp) => {
-                if (resp == undefined || resp.error != undefined || resp.action == "error") {
-                    reject(resp);
-                } else if(resp.data == undefined || resp.data.id == undefined){
-                    resolve(undefined);
-                }else{
-                    resolve(resp.data);
-                }
-            });
-    }).then((resp_data)=>{
-        if(resp_data == undefined){
-            return new Promise((resolve, reject) => 
-                mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "POST", 
-                (resp) => {
-                    if (resp == undefined || resp.error != undefined || resp.action == "error") {
-                        reject(resp);
-                    } else {
-                        scheduler._loading = true;
-                        scheduler.addEvent(resp.item);
-                        scheduler._loading = false;
-                        resolve(resp.data);
-                    }
-            })).then((resp_data1) => {return resp_data1;});
-        }else{
-            return resp_data;
-        }
-    });
-}
-
 function getAccordingEventInSchedulerCache(eid){
     if(!eid || eid < 0 || String(eid).indexOf("#") != -1){
         return null;
@@ -858,7 +876,7 @@ function writeDetailsInBothSchedulerCacheAndDB(eid, details, callback){
     }
     mySimpleReq("/scheduler/backend/events_details/", "POST", function (resp) {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert(resp);
         } else if(resp.data != undefined && resp.data.id != undefined) {
             if(callback != undefined){
                 callback();

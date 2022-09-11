@@ -4,6 +4,7 @@ var sqlite3 = require('sqlite3').verbose();
 const Storage = require("./storage_local");
 const StorageNote = require("./storage_note_local");
 const StorageNoteExt = require("./storage_note_ext_local");
+const StorageMemQuiz = require("../memquiz/storage_mementry");
 
 var setRoutes = (prefix, app, router) => {
 	var db = new sqlite3.Database('recorder.db');
@@ -18,6 +19,13 @@ var setRoutes = (prefix, app, router) => {
 	router.setNoteExtRoutes(app, `${prefix}/monthplan`, storageNoteExt);
 	router.setNoteExtRoutes(app, `${prefix}/weekplan`, storageNoteExt);
 	router.setNoteExtRoutes(app, `${prefix}/dailycheck`, storageNoteExt);
+	var db2 = new sqlite3.Database('C:\\Users\\a\\OneDrive\\reading\\kb.db');
+	var storageMemQuiz = new StorageMemQuiz(db2);
+	router.setMemQuizRoutes(app, `${prefix}/mementries`, storageMemQuiz);
+	router.setMemQuizRoutes(app, `${prefix}/memgroups`, storageMemQuiz);
+	router.setMemQuizRoutes(app, `${prefix}/membooks`, storageMemQuiz);
+	router.setMemQuizRoutes(app, `${prefix}/memlectures`, storageMemQuiz);
+	router.setMemQuizCSVImportRoutes(app, `${prefix}/mementries_import_by_csv`, storageMemQuiz);
 };
 
 module.exports = (app, router) => {

@@ -314,6 +314,29 @@ body {
 	  min-width: 600px; 
 	  min-height: 600px;
   }
+
+  #memquiz_view {
+	width: 100%;
+	height: 800px;
+	margin-bottom: 35px;
+  }
+  #memquiz_view_list {
+	height: 100%;
+	width: 100%;
+	overflow: scroll;
+  }
+  #memquiz_view_card {
+	height: 100%;
+	margin: 20px;
+	width: 100%;
+	overflow: scroll;
+  }
+  #memquiz_view_test {
+	height: 100%;
+	width: 100%;
+	overflow: scroll;
+  }
+
   .bell .material-icons { 
 	/* font-size:12rem !important; */
 	/* font-size:36px !important; */
@@ -347,4 +370,10 @@ body {
 	  animation: warnflickerAnimation 1s infinite;
   }
 
+  .bg-teal {
+	background-color: teal;
+  }
   
+  .d-inline-table{
+	  display: inline-table;
+  }

@@ -10,12 +10,15 @@
 	<script src="js/dhtmlx.js" type="text/javascript"></script>
 	<script src="js/jquery.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
+	<script src="js/utils.js" type="text/javascript" charset="utf-8"></script>
 	<script src="js/main.js" type="text/javascript" charset="utf-8"></script>
 	<script src="js/taskslides.js" type="text/javascript" charset="utf-8"></script>
 	<script src="/mmid_pack/mnote_parser.js" type="text/javascript" charset="utf-8"></script>
 	<script src="js/d3.js"></script>
 	<script src="js/d3.min.js"></script>
 	<script src="js/vis_d3.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/memquiz.js" type="text/javascript" charset="utf-8"></script>
+	<script src="/mmid_pack/mid_memquiz.js" type="text/javascript" charset="utf-8"></script>
 	<link rel="stylesheet" href="../codebase/dhtmlxscheduler_material.css?v=5.3.9" type="text/css" charset="utf-8">
 	<link rel="stylesheet" href="css/main.css" type="text/css" charset="utf-8">
 	<link rel="stylesheet" href="css/bootstrap.min.css">
@@ -72,7 +75,6 @@
 				taskSlidesModel.startTaskSlidesRefresh();
 				ko.applyBindings(taskSlidesModel);
 				$('#selectedDetailsTextArea').bind('keydown', myTaskSlideKeydown4selectedDetailsTextArea);
-				$('body').bind('keydown', myTaskSlideKeydown);
 			});
 
 			var dp = new dataProcessor("/scheduler/backend/events");
@@ -113,6 +115,7 @@
 			<a href="#notes_tab" onclick="openNoteExTab('monthplan')" data-toggle="tab">MonthPlan</a>
 			<a href="#notes_tab" onclick="openNoteExTab('weekplan')" data-toggle="tab">WeekPlan</a>
 			<a href="#notes_tab" onclick="openNoteExTab('dailycheck')" data-toggle="tab">DailyCheck</a>
+			<a href="#memquiz_tab" onclick="openMemQuizTab()" data-toggle="tab">MemQuiz</a>
 			<div id="myNotesToggleGroup">
 			</div>
 			<input type="date" id="dailyCheckDate" />
@@ -204,6 +207,8 @@
 						<div id="projNoteTreeCanvas" style="min-width: 600px; min-height: 600px;" ></div>
 					</div>
 				</div>
+			</div>
+			<div class="tab-pane" id="memquiz_tab">
 			</div>
 		</div>
 	</div>

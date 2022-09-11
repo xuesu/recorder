@@ -5,7 +5,14 @@
 /other_plan
 /node_modules
 /backend/node_modules
-
+/backend/memquiz/jotts/
+/backend/memquiz/TTS/
+/backend/memquiz/espeak_flask/
+/backend/memquiz/portaudio/
+/backend/memquiz/pcaudiolib/
+/backend/memquiz/my_tts_flask/
+/backend/memquiz/ffmpeg-2022-08-29-git-f99d15cca0-essentials_build/bin
+/backend/memquiz/espeak-1.48.04-source
 /.vscode
 /speech_syn
 

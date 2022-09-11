@@ -36,10 +36,6 @@ class Storage {
 	}
 
 	insert_sql(item) {
-		if (typeof item.score != "number") {
-			if (item.score == undefined || item.score == "") item.score = 0;
-			item.score = parseInt(item.score);
-		}
 		return new Promise((resolve, reject) => this._db.run(
 			`INSERT INTO myevents (name, details, is_finished, etype, score, start_date, end_date, event_length, event_pid, rec_pattern, rec_type)
 			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -304,7 +300,7 @@ class Storage {
 			}
 		}
 		serialized.text = item.name;
-		serialized.start_date = new Date(item.start_date);
+		serialized.start_date = new Date(item.start_date); //recover to [object Date]
 		serialized.end_date = new Date(item.end_date);
 		serialized.is_finished = item.is_finished == "true";
 		return serialized;

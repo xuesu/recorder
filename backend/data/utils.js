@@ -21,7 +21,10 @@ class MyUtils{
 		}
 		return ans;
 	};
-	
+
+	static isDict(v) {
+		return typeof v==='object' && v!==null && !(v instanceof Array) && !(v instanceof Date);
+	}
 
 }
 
