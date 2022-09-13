@@ -86,8 +86,8 @@ class StorageMemEntry extends MySimpleStorage {
 				}
 			}).catch((err) => {
 				console.log('Error: ');
-				console.log(err.message);
-				console.log(err.stack);
+				console.error(err.message);
+				console.error(err.stack);
 				return {
 					action: "error"
 				}
@@ -165,7 +165,7 @@ class StorageMemEntry extends MySimpleStorage {
 		return this.getAll(table_name, filter_params, extra_conditions);
 	}
 
-    importEntriesByCSV(fcontent, lecture_id){
+    async importEntriesByCSV(fcontent, lecture_id){
         var header = null;
         var records = [];
         var promises = [];
@@ -188,18 +188,21 @@ class StorageMemEntry extends MySimpleStorage {
           });
         parser.write(fcontent);
         parser.end();
-        return Promise.all(promises)
-        .then(res=>{
-            return {
-                action: "success"
-            };
-        })
-        .catch(err =>{
-            console.log(err);
-            return {
-                action: "error"
-            };
-        });
+		return Promise.all(promises).then((resp)=>{
+			if(resp.action == "error"){
+				return resp;
+			}
+			return {
+				action: "imported",
+			}
+		}).catch((err) => {
+			console.log('Error: ')
+			console.error(err);
+			return {
+				action: "error",				
+				err: err,
+			}
+		});
     }
 }
 

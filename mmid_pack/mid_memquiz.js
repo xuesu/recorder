@@ -11,7 +11,7 @@
 function calc_difficulties_v_0_1(histogram){
     if(histogram == undefined)return 1.0;
     if(!histogram instanceof Array)alert("histogram is not an array!");
-    if(histogram.length > 3)alert("shouldn't remeber so much!");
+    if(histogram.length > 3)alert("shouldn't remember so much!");
     var subprobs = [];
     for(var subhistogram of histogram){
         let x = 0.5 * subhistogram["R"] + 0.5 * subhistogram["T"] / (subhistogram["T"] + subhistogram["F"]);

@@ -109,7 +109,7 @@ function add_time_to_my_time_dur(start_time, time_dur){
     else if(time_dur.ele == "Min"){
         return addTimeTo(start_time, 0, 0, 0, 0, time_dur.value);
     }
-    alert("unexpected time_dur.ele", time_dur.ele);
+    alert("unexpected time_dur.ele", JSON.stringify(time_dur.ele));
 }
 
 function try_fit_in_types_in_prefix(s, start_ind, ok_types){

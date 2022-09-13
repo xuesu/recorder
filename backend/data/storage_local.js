@@ -1,12 +1,10 @@
+//This code is mainly from dhtmlx
 require("date-format-lite"); // add date format
 var xssFilters = require('xss-filters');
 var sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
-const e = require("express");
 const utils = require("./utils");
 const scheduler = require("./scheduler_mini_recurring");
-const { time } = require("console");
-
 
 
 class Storage {
@@ -45,8 +43,8 @@ class Storage {
 				if (err && err != null) {
 					console.log('Error running insert_sql');
 					console.log('Error: ');
-					console.log(err.message);
-					console.log(err.stack);
+					console.error(err.message);
+					console.error(err.stack);
 					reject(err)
 				} else {
 					item.id = this.lastID;
@@ -81,8 +79,8 @@ class Storage {
 			(err) => {
 				if (err) {
 					console.log('Error running update_sql');
-					console.log(err.message);
-					console.log(err.stack);
+					console.error(err.message);
+					console.error(err.stack);
 					reject(err)
 				} else {
 					resolve(item)
@@ -101,8 +99,8 @@ class Storage {
 			(err) => {
 				if (err) {
 					console.log('Error running update_sql');
-					console.log(err.message);
-					console.log(err.stack);
+					console.error(err.message);
+					console.error(err.stack);
 					reject(err)
 				} else {
 					resolve(eid, details)
@@ -117,8 +115,8 @@ class Storage {
 			[id], (err) => {
 				if (err) {
 					console.log('Error running delete_by_id_sql');
-					console.log(err.message);
-					console.log(err.stack);
+					console.error(err.message);
+					console.error(err.stack);
 					reject(err)
 				} else {
 					resolve(id)
@@ -133,8 +131,8 @@ class Storage {
 			[event_pid], (err) => {
 				if (err) {
 					console.log('Error running delete_by_event_pid_sql');
-					console.log(err.message);
-					console.log(err.stack);
+					console.error(err.message);
+					console.error(err.stack);
 					reject(err)
 				} else {
 					resolve(event_pid)
@@ -149,8 +147,8 @@ class Storage {
 			[name], (err) => {
 				if (err) {
 					console.log('Error running delete_by_name_sql');
-					console.log(err.message);
-					console.log(err.stack);
+					console.error(err.message);
+					console.error(err.stack);
 					reject(err)
 				} else {
 					resolve(name)
@@ -164,7 +162,7 @@ class Storage {
 			`SELECT * FROM myevents where name=?`, [name], (err, rows) => {
 				if (err) {
 					console.log('Error running query_name_sql')
-					console.log(err)
+					console.error(err)
 					reject(err)
 				} else {
 					resolve(rows);
@@ -178,7 +176,7 @@ class Storage {
 			`SELECT * FROM myevents where event_pid=? and event_length=?`, [event_pid, event_length], (err, rows) => {
 				if (err) {
 					console.log('Error running query_event_occur_exists_sql')
-					console.log(err)
+					console.error(err)
 					reject(err)
 				} else {
 					resolve(rows);
@@ -192,7 +190,7 @@ class Storage {
 			`SELECT * FROM myevents`, [], (err, rows) => {
 				if (err) {
 					console.log('Error running query_all')
-					console.log(err)
+					console.error(err)
 					reject(err)
 				} else {
 					resolve(rows)
@@ -206,7 +204,7 @@ class Storage {
 			`SELECT * FROM myevents Where is_finished == "false" and etype == "PLAN"`, [], (err, rows) => {
 				if (err) {
 					console.log('Error running query_all_unfinished_plan_sql')
-					console.log(err)
+					console.error(err)
 					reject(err)
 				} else {
 					resolve(rows)
@@ -221,7 +219,7 @@ class Storage {
 			`select sum(score) from myevents;`, [], (err, ans) => {
 				if (err) {
 					console.log('Error running query_all')
-					console.log(err)
+					console.error(err)
 					reject(err)
 				} else {
 					resolve(ans)
@@ -344,8 +342,8 @@ class Storage {
 
 		}).catch((err) => {
 			console.log('Error: ');
-			console.log(err.message);
-			console.log(err.stack);
+			console.error(err.message);
+			console.error(err.stack);
 		});
 	}
 
@@ -419,8 +417,11 @@ class Storage {
 			}
 		}).catch((err) => {
 			console.log('Error: ');
-			console.log(err.message);
-			console.log(err.stack);
+			console.error(err.message);
+			console.error(err.stack);
+			return {
+				action: "error"
+			}
 		});
 
 	}
@@ -431,34 +432,32 @@ class Storage {
 		}
 		var this2 = this;
 		return this.query_event_occur_exists_sql(data.event_pid, data.event_length).then(
-			function(rows){
+			rows=>{
 				if(rows.length > 0){
-					return {
-						action: "queryed",
+					return resolve({
+						action: "query",
 						tid: rows[0].id.toString(),
 						item: rows[0],
-					};
+					});
 				}else{
 					var item = this2.dhtml2db(data);
-					return this2.insert_sql(item).then(
-						function (item) {
-							return {
+					return resolve(this2.insert_sql(item).then(
+						(item)=> {
+							return resolve({
 								action: "inserted",
 								tid: item.id.toString(),
 								item: this2.db2dhtml(item),
-							};
-						});
+							});
+						},
+						(err)=>{
+							console.log("cannot query_event_occur_exists_sql using ", data.event_pid, data.event_length);
+							reject(err);
+						}
+						)
+					);
 				}
 			}
-		).catch((err) => {
-			console.log('Error: ');
-			console.log(err.message);
-			console.log(err.stack);
-			return {
-				action: "error"
-			}
-		});
-
+		);
 	}
 
 	// create new event
@@ -477,8 +476,8 @@ class Storage {
 				}
 			}).catch((err) => {
 				console.log('Error: ');
-				console.log(err.message);
-				console.log(err.stack);
+				console.error(err.message);
+				console.error(err.stack);
 				return {
 					action: "error"
 				}
@@ -495,8 +494,8 @@ class Storage {
 		var this2= this;
 		return this.update_sql(item).catch((err) => {
 			console.log('Error: ');
-			console.log(err.message);
-			console.log(err.stack);
+			console.error(err.message);
+			console.error(err.stack);
 			return {
 				action: "error",
 			}
@@ -543,8 +542,8 @@ class Storage {
 			return Promise.all(promises);
 		}).catch((err) => {
 			console.log('Error: ');
-			console.log(err.message);
-			console.log(err.stack);
+			console.error(err.message);
+			console.error(err.stack);
 		});
 	}
 
@@ -610,15 +609,15 @@ class Storage {
 		if (rows.length == 0) {
 			await this.insert_sql(item).catch((err) => {
 				console.log('Error: ');
-				console.log(err.message);
-				console.log(err.stack);
+				console.error(err.message);
+				console.error(err.stack);
 			});
 		} else {
 			item.id = rows[0].id;
 			await this.update_sql(item).catch((err) => {
 				console.log('Error: ');
-				console.log(err.message);
-				console.log(err.stack);
+				console.error(err.message);
+				console.error(err.stack);
 			});
 		}
 		return {
@@ -630,8 +629,8 @@ class Storage {
 		eid = parseInt(eid);
 		return this.update_details_sql(eid, details_str).catch((err) => {
 			console.log('Error: ');
-			console.log(err.message);
-			console.log(err.stack);
+			console.error(err.message);
+			console.error(err.stack);
 			return {
 				action: "error",
 			}

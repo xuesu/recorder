@@ -6,7 +6,7 @@ function callMethod (method) {
 			result = await method(req, res);
 		} catch (e) {
 			result =  {
-				action: "error",
+				action:  "error",
 				message: e.message
 			}
 		}
@@ -20,7 +20,7 @@ function getNoteType(url, remove_sec_num){
 	while(possible_type_str.endsWith("/")){
 		possible_type_str = possible_type_str.substr(0, possible_type_str.length - 1);
 	}
-	while(remove_sec_num > 0){
+	while(possible_type_str.lastIndexOf("/") > 0 && (remove_sec_num > 0 || possible_type_str.startsWith("?", possible_type_str.lastIndexOf("/") + 1))){
 		possible_type_str = possible_type_str.substr(0, possible_type_str.lastIndexOf("/"));
 		remove_sec_num -= 1;
 	}

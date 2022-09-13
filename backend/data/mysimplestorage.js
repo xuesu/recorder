@@ -31,7 +31,6 @@ class MySimpleStorage {
 		this.alias2table_name = alias2table_name;
 	}
 
-	
 	dhtml2db(table_name, data) {
 		var params_related = this.param_relations[table_name];
 		var item = {};
@@ -83,8 +82,8 @@ class MySimpleStorage {
 	insert_sql(table_name, item) {
 		var params_related_without_id = this.param_relations[table_name].slice(1);
 		var item_arr = [];
-		for(var i = 0;i < params_related_without_id.length; i+=1){
-			item_arr.push(item[params_related_without_id[i]]);
+		for(var param_name of params_related_without_id){
+			item_arr.push(item[param_name]);
 		}
 		return new Promise((resolve, reject) => this._db.run(
 			"INSERT INTO " + table_name  + " (" + params_related_without_id.join(",") 
@@ -93,7 +92,7 @@ class MySimpleStorage {
 			function (err) {
 				if (err && err != null) {
 					console.log('Error running insert_sql');
-					console.log(err);
+					console.error(err);
 					reject(err)
 				} else {
 					item.id = this.lastID;
@@ -104,12 +103,20 @@ class MySimpleStorage {
 	}
 
 	update_sql(table_name, item) {
+		if(item.id == undefined){
+			return {
+				action: "error",
+				error: "Cannot find id!"
+			};
+		}
 		var params_related_without_id = this.param_relations[table_name].slice(1);
 		var item_arr = [];
 		var set_str_parts = [];
-		for(var i = 0;i < params_related_without_id.length; i+=1){
-			set_str_parts.push(params_related_without_id[i] + " = ? ");
-			item_arr.push(item[params_related_without_id[i]]);
+		for(var param_name of params_related_without_id){
+			if(param_name in item){
+				set_str_parts.push(param_name + " = ? ");
+				item_arr.push(item[param_name]);
+			}
 		}
 		item_arr.push(item.id);
 		return new Promise((resolve, reject) => this._db.run(
@@ -118,7 +125,7 @@ class MySimpleStorage {
 			(err) => {
 				if (err) {
 					console.log('Error running update_sql');
-					console.log(err);
+					console.error(err);
 					reject(err)
 				} else {
 					resolve(item)
@@ -133,7 +140,7 @@ class MySimpleStorage {
 			[id], (err) => {
 				if (err) {
 					console.log('Error running delete_by_id_sql');
-					console.log(err);
+					console.error(err);
 					reject(err)
 				} else {
 					resolve(id)
@@ -147,7 +154,7 @@ class MySimpleStorage {
 			"SELECT * FROM " + table_name + " where id = ?", [id], (err, rows) => {
 				if (err) {
 					console.log('Error running query_all');
-					console.log(err);
+					console.error(err);
 					reject(err)
 				} else {
 					resolve(rows)
@@ -155,7 +162,6 @@ class MySimpleStorage {
 			}
 		))
 	}
-
 
 	query_all_sql(table_name, filter_params, extra_conditions) {
 		var sql = "SELECT * FROM " + table_name;
@@ -187,7 +193,7 @@ class MySimpleStorage {
 			sql, sql_vs, (err, rows) => {
 				if (err) {
 					console.log('Error running query_all');
-					console.log(err);
+					console.error(err);
 					reject(err)
 				} else {
 					resolve(rows)
@@ -203,16 +209,21 @@ class MySimpleStorage {
 		return this.query_one_by_id_sql(table_name, id).then((rows) => {
 			if(rows.length == 0){
 				return {
-					"error": "Unable find " + table_name + " by id: " + id,
+					action: "error",
+					error: "Unable find " + table_name + " by id: " + id,
 				};
 			}else{
 				return {
-					"data": this.db2dhtml(rows[0]),
+					data: this.db2dhtml(rows[0]),				
+					action: "query"
 				};
 			}
 		}).catch((err) => {
 			console.log('Error: ')
-			console.log(err)
+			console.error(err);
+			return {
+				action: "error" //Should check the log for details rather than find it in the frontend
+			}
 		});
 	}
 
@@ -227,13 +238,16 @@ class MySimpleStorage {
 				const event = this.db2dhtml(row);
 				result.push(event);
 			}
-			var res = {
-				data: result
+			return {
+				data: result,
+				action: "query"
 			};
-			return res;
 		}).catch((err) => {
 			console.log('Error: ');
-			console.log(err);
+			console.error(err);
+			return {
+				action: "error"
+			}
 		});
 	}
 
@@ -250,8 +264,8 @@ class MySimpleStorage {
 				}
 			}).catch((err) => {
 				console.log('Error: ');
-				console.log(err.message);
-				console.log(err.stack);
+				console.error(err.message);
+				console.error(err.stack);
 				return {
 					action: "error"
 				}
@@ -276,13 +290,16 @@ class MySimpleStorage {
 		}
 		return Promise.all(promises).catch((err) => {
 			console.log('Error: ')
-			console.log(err);
+			console.error(err);
 			return {
-				action: "error",
-			}
+				action: "error"
+			};
 		}).then((resp)=>{
+			if(resp.action == "error"){
+				return resp;
+			}
 			return {
-				action: "updated"
+				action: "updated",
 			}
 		});
 	}
@@ -291,10 +308,19 @@ class MySimpleStorage {
 		if(!(table_name in this.param_relations)){
 			table_name = this.alias2table_name[table_name];
 		}
-		await this.delete_by_id_sql(table_name, parseInt(id));
-		return {
-			action: "deleted"
-		}
+		return this.delete_by_id_sql(table_name, parseInt(id)).then(
+			function (resp) {
+				return {
+					action: "deleted",
+				}
+			}).catch((err) => {
+				console.log('Error: ');
+				console.error(err.message);
+				console.error(err.stack);
+				return {
+					action: "error"
+				}
+			});
 	}
 }
 

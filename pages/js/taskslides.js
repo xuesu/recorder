@@ -276,7 +276,7 @@ taskSlidesModel.trySaveLog = function(forced){
         for(var i in resp_data_arr){
             var eid = resp_data_arr[i].id;
             if(!resp_data_arr[i].title.startsWith("dailycheck_")){
-                throw "Get task from getOrCreateDailyCheck with !task.title.startswith(dailycheck_)";
+                throw "Get task from getOrCreateDailyCheck with !task.title.startsWith(dailycheck_)";
             }
             var date_str = resp_data_arr[i].title.substr("dailycheck_".length);
             var lines = changed_date2append_lines[date_str];
@@ -322,7 +322,7 @@ taskSlidesModel.selectedTask = ko.computed(function(){
     if(String(this.selectedTaskID()).indexOf("#") != -1){
         mySimpleReq("/scheduler/backend/events/", "POST", function(resp){
             if (resp == undefined || resp.error != undefined || resp.action == "error") {
-                alert(resp);
+                alert(JSON.stringify(resp));
             }else{
                 scheduler._loading = true;
                 var oldid = taskSlidesModel.selectedTaskID();

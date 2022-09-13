@@ -292,12 +292,12 @@ function displayBooksAndLecturesAndMemEntries(is_list_changed){//0: list change,
 function refreshBooksAndLectures(){
     mySimpleReq("/scheduler/backend/membooks/", "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(resp);
+            alert(JSON.stringify(resp));
         } else {
             recvMemBooks(resp.data);
             mySimpleReq("/scheduler/backend/memlectures/", "GET", (resp) => {
                 if (resp == undefined || resp.error != undefined || resp.action == "error") {
-                    alert(resp);
+                    alert(JSON.stringify(resp));
                 } else {
                     recvMemLectures(resp.data); 
                     displayBooksAndLecturesAndMemEntries(true);
@@ -307,7 +307,7 @@ function refreshBooksAndLectures(){
     });
     mySimpleReq("/scheduler/backend/memgroups/", "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(resp);
+            alert(JSON.stringify(resp));
         } else {
             recvMemGroups(resp.data); 
         }
@@ -388,7 +388,7 @@ function concerntrate_on_mementries(mementry_ids, source_tp, source_id){
 function refreshMemEntriesByCurrentLecture(lecture_id){
     mySimpleReq("/scheduler/backend/mementries/?lecture_id=" + lecture_id, "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(resp);
+            alert(JSON.stringify(resp));
         } else {
             recvMenEntries(resp.data);
             mementry_ids_current_lecture = items_with_id2id_set(resp.data);
@@ -401,7 +401,7 @@ function refreshMemEntriesByCurrentLecture(lecture_id){
 function refreshMemEntriesByFavoriteGroup(book_id){
     mySimpleReq("/scheduler/backend/mementries/?group_ids has=" + favorite_group_id + " &book_id=" + book_id, "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(resp);
+            alert(JSON.stringify(resp));
         } else {
             recvMenEntries(resp.data);
             mementry_ids_fav = items_with_id2id_set(resp.data);
@@ -428,7 +428,7 @@ function ttsAndPlay(text, model_name, lang, mp3datacallback, other_params){
     }
     myCORSReq("http://127.0.0.1:9201/" + model_name  + "_" + lang, "POST", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(resp);
+            alert(JSON.stringify(resp));
         } else {
             mp3datacallback(resp.data);
         }
@@ -783,14 +783,14 @@ function importMemEntriesByCSV(){
         var reader = new FileReader();
         reader.readAsText(csvfile, "UTF-8");
         reader.onerror = function (event) {
-           alert("error reading file", event);
+           alert("error reading file", JSON.stringify(event));
            document.getElementById("memquiz_csv_input").value = "";
         }
         reader.onloadend = function(event){
             mySimpleReq("/scheduler/backend/mementries_import_by_csv", "POST", 
             (resp)=>{
-                if(resp.action == "success")alert("Successfully import records by CSV!", resp);
-                else alert("Cannot import records by CSV!", resp);
+                if(resp.action == "error")alert("Cannot import records by CSV!", JSON.stringify(resp));
+                else alert("Successfully import records by CSV!", JSON.stringify(resp));
                 document.getElementById("memquiz_csv_input").value = "";
                 refreshBooksAndLectures();
             }, 

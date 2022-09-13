@@ -27,10 +27,10 @@ class StorageNoteExt {
     async getNoteEventExampleStr(type_str) {
 		let rows = await this._note_storage.query_all_notes_by_title_sql(getNoteEventInstanceName(type_str, "example"), 'true').catch((err) => {
             console.log('Error: ');
-            console.log(err.message);
-            console.log(err.stack);
+            console.error(err.message);
+            console.error(err.stack);
         });
-		if (rows.length == 0) return undefined;
+		if (rows == undefined || rows.length == 0) return undefined;
 		return rows[0].content;
 	}
 
@@ -108,31 +108,42 @@ class StorageNoteExt {
 			}
 		}).catch((err) => {
 			console.log('Error: ');
-			console.log(err.message);
-			console.log(err.stack);
+			console.error(err.message);
+			console.error(err.stack);
+            return {
+                action: "error"
+            }
 		});
 	}
 
 	async create(type_str, date_txt_provided) {
 		let query_res = await this.getOneByName(type_str, date_txt_provided).catch((err) => {
             console.log('Error: ');
-            console.log(err.message);
-            console.log(err.stack);
+            console.error(err.message);
+            console.error(err.stack);
+            return {
+                action: "need process" 
+            }
         });
 		if (query_res.data == undefined) {
             var event_item = await this.createNoteEventInstanceFromExample(type_str, date_txt_provided);
             if(event_item == undefined){
                 return {
-                    "action": "error",
-                    "message": "cannot create event from example!"
+                    action: "error",
+                    error: "cannot create event from example!"
                 };
             }
-			await this._event_storage.insert_sql(event_item).catch((err) => {
+			let inserted_res = await this._event_storage.insert_sql(event_item).catch((err) => {
 					console.log('Error: ');
-					console.log(err.message);
-					console.log(err.stack);
+					console.error(err.message);
+					console.error(err.stack);
+                    return {
+                        action: "error",
+                        error: "cannot insert event!"
+                    }
 				});
-            return this.getOneByName(type_str, date_txt_provided)
+            if(inserted_res.action == "error")return inserted_res;
+            else return await this.getOneByName(type_str, date_txt_provided);
 		}else{
             return query_res;
         }
@@ -141,20 +152,20 @@ class StorageNoteExt {
 	async update(type_str, date_txt_provided, postdata) {
         if (postdata.text == undefined) {
             return {
-                "action": "error",
-                "message": "details.text is empty"
+                action: "error",
+                error: "details.text is empty"
             };
         }
         let name = getNoteEventInstanceName(type_str, date_txt_provided);
 		let rows = await this._event_storage.query_name_sql(name).catch((err) => {
             console.log('Error: ');
-            console.log(err.message);
-            console.log(err.stack);
+            console.error(err.message);
+            console.error(err.stack);
         });
 		if (rows.length == 0) {
             return {
-                "action": "error",
-                "message": getNoteEventInstanceName(type_str, date_txt_provided) + " is not-exist!"
+                action: "error",
+                error: getNoteEventInstanceName(type_str, date_txt_provided) + " is not-exist!"
             };
 		} 
 		var item = rows[0];
@@ -162,25 +173,27 @@ class StorageNoteExt {
         var todo_item = note_format_parser.parse_todo_tree(item.details);
         if(todo_item == undefined){
             return {
-                "action": "error",
-                "message": "cannot parse to-do tree"
+                action: "error",
+                error: "cannot parse to-do tree"
             };
         }
 		item.score = this.calcDailyCheckScore(todo_item.children);
         this._event_storage.update_sql(item);
-		return this.getOneByName(type_str, date_txt_provided);
+		return await this.getOneByName(type_str, date_txt_provided);
 	}
 
 	async delete(type_str, date_txt_provided) {
 		return this._event_storage.delete_by_name_sql(getNoteEventInstanceName(type_str, date_txt_provided)).then((name) => {
 			return {
-				"action": "deleted",
-                "message": "success!"
+				action: "deleted",
 			};
 		}).catch((err) => {
 			console.log('Error: ');
-			console.log(err.message);
-			console.log(err.stack);
+			console.error(err.message);
+			console.error(err.stack);
+            return {
+                action: "error",
+            };
 		});
 	}
 }
