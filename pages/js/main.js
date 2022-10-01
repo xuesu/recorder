@@ -24,7 +24,7 @@ async function mySimpleReq(url, method, callback, data = {}) {
             if (typeof error != "string") {
                 err_msg = String(error);
             }
-            alert(JSON.stringify(err_msg));
+            alert("mySimpleReq:" + JSON.stringify(err_msg));
             console.error(error)
         });
 }
@@ -51,7 +51,7 @@ async function myCORSReq(url, method, callback, data = {}) {
             if (typeof error != "string") {
                 err_msg = String(error);
             }
-            alert(JSON.stringify(err_msg));
+            alert("myCORSReq:" + JSON.stringify(err_msg));
             console.error(error)
         });
 }
@@ -210,7 +210,7 @@ function queryDailyCheck() {
     }
     mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("queryDailyCheck:" + JSON.stringify(resp));
         } else if (resp.data == undefined) {
             changeDailyCheckBtnStatus("create");
         } else {
@@ -228,7 +228,7 @@ function createDailyCheck() {
     }
     mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "POST", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("createDailyCheck:" + JSON.stringify(resp));
             changeDailyCheckBtnStatus("create");
         } else {
             changeDailyCheckBtnStatus("view");
@@ -247,7 +247,7 @@ function deleteDailyCheck() {
         return;
     } else {
         mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "DELETE", (respText) => {
-            alert(respText);
+            alert("deleteDailyCheck:" + respText);
             changeDailyCheckBtnStatus("create");
             if(noteExtMode == "dailycheck"){
                 clearNote();
@@ -263,7 +263,7 @@ function simpleCreateCheck(date_txt_provided, mode_str){
     }
     mySimpleReq("/scheduler/backend/" + mode_str + "/" + date_txt_provided, "POST", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("simpleCreateCheck:" + JSON.stringify(resp));
         }
     });
 
@@ -277,7 +277,7 @@ function queryMonthPlan() {
     }
     mySimpleReq("/scheduler/backend/monthplan/" + date_txt_provided, "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("queryMonthPlan:" + JSON.stringify(resp));
         } 
          else {
 
@@ -293,7 +293,7 @@ function createMonthPlan() {
     }
     mySimpleReq("/scheduler/backend/monthplan/" + date_txt_provided, "POST", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("createMonthPlan:" + JSON.stringify(resp));
         } 
         else if(noteExtMode == "monthplan"){
             showNoteEx();
@@ -308,7 +308,7 @@ function deleteMonthPlan() {
         return;
     } else {
         mySimpleReq("/scheduler/backend/monthplan/" + date_txt_provided, "DELETE", (respText) => {
-            alert(respText);
+            alert("deleteMonthPlan:" + respText);
             if(noteExtMode == "monthplan"){
                 clearNote();
             }
@@ -324,7 +324,7 @@ function queryWeekPlan() {
     }
     mySimpleReq("/scheduler/backend/weekplan/" + date_txt_provided, "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("queryWeekPlan:" + JSON.stringify(resp));
         } 
          else {
 
@@ -340,7 +340,7 @@ function createWeekPlan() {
     }
     mySimpleReq("/scheduler/backend/weekplan/" + date_txt_provided, "POST", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("createWeekPlan:" + JSON.stringify(resp));
         } 
         else if(noteExtMode == "weekplan"){
             showNoteEx();
@@ -355,7 +355,7 @@ function deleteWeekPlan() {
         return;
     } else {
         mySimpleReq("/scheduler/backend/weekplan/" + date_txt_provided, "DELETE", (respText) => {
-            alert(respText);
+            alert("deleteWeekPlan:" + respText);
             if(noteExtMode == "weekplan"){
                 clearNote();
             }
@@ -485,7 +485,7 @@ function saveNote() {
     };
     var callbackfn = function (resp) {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("saveNote:" + JSON.stringify(resp));
         } else {
             if (idSelected == -1) {
                 idSelected = resp.tid;
@@ -497,7 +497,7 @@ function saveNote() {
                     document.getElementById("myNotesToggleGroup").appendChild(tmpa);
                 }
             }
-            alert(JSON.stringify(resp));
+            alert("saveNote:" + JSON.stringify(resp));
             if (is_proj_note) {
                 document.getElementById("projNoteTreeContainer").setAttribute("style", "");
                 visProjTODO(data_content);
@@ -532,7 +532,7 @@ function saveNoteEx(){
         if(date_txt_provided != undefined){
             var data_content = document.getElementById("notes_content").value;
             mySimpleReq("/scheduler/backend/" + noteExtMode + "/" + date_txt_provided, "POST", (resp) => {
-                alert(JSON.stringify(resp));
+                alert("saveNoteEx:" + JSON.stringify(resp));
                 if(noteExtMode == 'dailycheck'){
                     if (resp.data == undefined) {
                         changeDailyCheckBtnStatus("create");
@@ -674,7 +674,7 @@ function showNote(id) {
     mySimpleReq("/scheduler/backend/notes/" + id, "GET", (resp) => {
         var data = resp.data;
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("showNote: " + JSON.stringify(resp));
         } else {
             document.getElementById("notes_title").value = data.title;
             document.getElementById("notes_content").value = data.content;
@@ -705,10 +705,10 @@ function showNoteEx(){
             mySimpleReq("/scheduler/backend/" + noteExtMode + "/" + date_txt_provided, "GET", (resp) => {
                 var data = resp.data;
                 if (resp == undefined || resp.error != undefined || resp.action == "error") {
-                    alert(JSON.stringify(resp));
+                    alert("showNoteEx:" + JSON.stringify(resp));
                 } 
                 else if(data == undefined){
-                    alert(noteExtMode + "_" + date_txt_provided + " does not exist!");
+                    alert("showNoteEx:" + noteExtMode + "_" + date_txt_provided + " does not exist!");
                 }
                 else {
                     document.getElementById("notes_title").value = data.title;
@@ -745,7 +745,9 @@ function deleteNote() {
     if (idSelected == -1) {
         alert("Please select a ok id!");
     } else {
-        mySimpleReq("/scheduler/backend/notes/" + idSelected, "DELETE", (resp) => { alert(JSON.stringify(resp)); });
+        mySimpleReq("/scheduler/backend/notes/" + idSelected, "DELETE", (resp) => { 
+            alert("deleteNote:" + JSON.stringify(resp)); 
+        });
     }
 }
 
@@ -757,7 +759,7 @@ function loadExpenses() {
     } else {
         mySimpleReq("/scheduler/backend/expenses/" + date_txt_provided, "GET", (data) => {
             if (data.error != undefined || data.action == "error") {
-                alert("Something wrong!", JSON.stringify(data));
+                alert("Something wrong!" + JSON.stringify(data));
             } else {            
                 scheduler.load("/scheduler/backend/events", function(){alert("OK.");});
             }
@@ -810,7 +812,7 @@ function createNotice() {
     };
     var callbackfn = function (resp) {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("createNotice:" + JSON.stringify(resp));
         } else {
             data.id = resp.tid;
             document.getElementById("noticeCreateTextArea").value = "";
@@ -876,7 +878,7 @@ function writeDetailsInBothSchedulerCacheAndDB(eid, details, callback){
     }
     mySimpleReq("/scheduler/backend/events_details/", "POST", function (resp) {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("writeDetailsInBothSchedulerCacheAndDB:" + JSON.stringify(resp));
         } else if(resp.data != undefined && resp.data.id != undefined) {
             if(callback != undefined){
                 callback();

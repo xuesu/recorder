@@ -62,7 +62,7 @@ function openMemQuizTab(){
 function switchMemEntryViewMode(new_mode){
     if(new_mode == memEntryViewModeSelected)return;
     if(new_mode != "list" && new_mode != "card" && new_mode != "test"){
-        alert("Unknown mementry View model", new_mode);
+        alert("Unknown mementry View model" + new_mode);
     }
     if(new_mode != "test"){
         mementry_id2subhistogram.clear();
@@ -180,7 +180,7 @@ function recvMemGroups(data_recv){
     id2memgroup = items_with_id2map(data_recv);
     id2memgroup.forEach((memgroup)=>{
         if(memgroup.name == 'Favorite'){
-            if(memgroup.id != favorite_group_id)alert("Please check kb.db, The group id of Favorite is not ", favorite_group_id);
+            if(memgroup.id != favorite_group_id)alert("Please check kb.db, The group id of Favorite is not " + favorite_group_id);
         }else if(memgroup.name in audible_group_name2model_lang){
             audible_group_name2model_lang[memgroup.name].id = memgroup.id;
             audible_group_id2model_lang[memgroup.id] = audible_group_name2model_lang[memgroup.name];
@@ -292,12 +292,12 @@ function displayBooksAndLecturesAndMemEntries(is_list_changed){//0: list change,
 function refreshBooksAndLectures(){
     mySimpleReq("/scheduler/backend/membooks/", "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("refreshBooksAndLectures-membooks" + JSON.stringify(resp));
         } else {
             recvMemBooks(resp.data);
             mySimpleReq("/scheduler/backend/memlectures/", "GET", (resp) => {
                 if (resp == undefined || resp.error != undefined || resp.action == "error") {
-                    alert(JSON.stringify(resp));
+                    alert("refreshBooksAndLectures-lectures" + JSON.stringify(resp));
                 } else {
                     recvMemLectures(resp.data); 
                     displayBooksAndLecturesAndMemEntries(true);
@@ -307,7 +307,7 @@ function refreshBooksAndLectures(){
     });
     mySimpleReq("/scheduler/backend/memgroups/", "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("refreshBooksAndLectures-memgroups" + JSON.stringify(resp));
         } else {
             recvMemGroups(resp.data); 
         }
@@ -388,7 +388,7 @@ function concerntrate_on_mementries(mementry_ids, source_tp, source_id){
 function refreshMemEntriesByCurrentLecture(lecture_id){
     mySimpleReq("/scheduler/backend/mementries/?lecture_id=" + lecture_id, "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("refreshMemEntriesByCurrentLecture" + JSON.stringify(resp));
         } else {
             recvMenEntries(resp.data);
             mementry_ids_current_lecture = items_with_id2id_set(resp.data);
@@ -401,7 +401,7 @@ function refreshMemEntriesByCurrentLecture(lecture_id){
 function refreshMemEntriesByFavoriteGroup(book_id){
     mySimpleReq("/scheduler/backend/mementries/?group_ids has=" + favorite_group_id + " &book_id=" + book_id, "GET", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("refreshMemEntriesByFavoriteGroup" + JSON.stringify(resp));
         } else {
             recvMenEntries(resp.data);
             mementry_ids_fav = items_with_id2id_set(resp.data);
@@ -428,7 +428,7 @@ function ttsAndPlay(text, model_name, lang, mp3datacallback, other_params){
     }
     myCORSReq("http://127.0.0.1:9201/" + model_name  + "_" + lang, "POST", (resp) => {
         if (resp == undefined || resp.error != undefined || resp.action == "error") {
-            alert(JSON.stringify(resp));
+            alert("ttsAndPlay" + JSON.stringify(resp));
         } else {
             mp3datacallback(resp.data);
         }
@@ -459,7 +459,7 @@ function get_model_and_lang_by_entry_id(entry_id){
 function ttsAndPlay_by_mementry_id(entry_id, mp3datacallback){
     var model_and_lang = get_model_and_lang_by_entry_id(entry_id);
     if(model_and_lang.length == 0){
-        alert("Cannot understand how to speak entry", entry_id);
+        alert("Cannot understand how to speak entry" + entry_id);
     }
     ttsAndPlay(id2mementry.get(entry_id).name, model_and_lang["model"], model_and_lang["lang"], mp3datacallback, {"try_cache": true});
 }
@@ -783,14 +783,14 @@ function importMemEntriesByCSV(){
         var reader = new FileReader();
         reader.readAsText(csvfile, "UTF-8");
         reader.onerror = function (event) {
-           alert("error reading file", JSON.stringify(event));
+           alert("error reading file" + JSON.stringify(event));
            document.getElementById("memquiz_csv_input").value = "";
         }
         reader.onloadend = function(event){
             mySimpleReq("/scheduler/backend/mementries_import_by_csv", "POST", 
             (resp)=>{
-                if(resp.action == "error")alert("Cannot import records by CSV!", JSON.stringify(resp));
-                else alert("Successfully import records by CSV!", JSON.stringify(resp));
+                if(resp.action == "error")alert("Cannot import records by CSV!" + JSON.stringify(resp));
+                else alert("Successfully import records by CSV!" + JSON.stringify(resp));
                 document.getElementById("memquiz_csv_input").value = "";
                 refreshBooksAndLectures();
             }, 

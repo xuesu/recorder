@@ -6,7 +6,7 @@ function callMethod (method) {
 			result = await method(req, res);
 		} catch (e) {
 			result =  {
-				action:  "error",
+				action: "error",
 				message: e.message
 			}
 		}

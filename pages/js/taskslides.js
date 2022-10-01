@@ -322,7 +322,7 @@ taskSlidesModel.selectedTask = ko.computed(function(){
     if(String(this.selectedTaskID()).indexOf("#") != -1){
         mySimpleReq("/scheduler/backend/events/", "POST", function(resp){
             if (resp == undefined || resp.error != undefined || resp.action == "error") {
-                alert(JSON.stringify(resp));
+                alert("taskSlidesModel.selectedTask:" + JSON.stringify(resp));
             }else{
                 scheduler._loading = true;
                 var oldid = taskSlidesModel.selectedTaskID();

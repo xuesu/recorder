@@ -426,34 +426,29 @@ class Storage {
 
 	}
 
-	insert_dummy_copy(data){
+	async insert_dummy_copy(data){
 		if(data.id != undefined && data.id.indexOf("#") != -1){
 			scheduler.recover_ev_from_dummy_copy(data);
 		}
 		var this2 = this;
-		return this.query_event_occur_exists_sql(data.event_pid, data.event_length).then(
+		return await this.query_event_occur_exists_sql(data.event_pid, data.event_length).then(
 			rows=>{
 				if(rows.length > 0){
-					return resolve({
+					return {
 						action: "query",
 						tid: rows[0].id.toString(),
 						item: rows[0],
-					});
+					};
 				}else{
 					var item = this2.dhtml2db(data);
-					return resolve(this2.insert_sql(item).then(
+					return this2.insert_sql(item).then(
 						(item)=> {
-							return resolve({
+							return {
 								action: "inserted",
 								tid: item.id.toString(),
 								item: this2.db2dhtml(item),
-							});
-						},
-						(err)=>{
-							console.log("cannot query_event_occur_exists_sql using ", data.event_pid, data.event_length);
-							reject(err);
+							};
 						}
-						)
 					);
 				}
 			}
