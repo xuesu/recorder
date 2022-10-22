@@ -1,6 +1,7 @@
 
 var sqlite3 = require('sqlite3').verbose();
 
+const path = require("path");
 const Storage = require("./storage_local");
 const StorageNote = require("./storage_note_local");
 const StorageNoteExt = require("./storage_note_ext_local");
@@ -19,7 +20,7 @@ var setRoutes = (prefix, app, router) => {
 	router.setNoteExtRoutes(app, `${prefix}/monthplan`, storageNoteExt);
 	router.setNoteExtRoutes(app, `${prefix}/weekplan`, storageNoteExt);
 	router.setNoteExtRoutes(app, `${prefix}/dailycheck`, storageNoteExt);
-	var db2 = new sqlite3.Database('C:\\Users\\a\\OneDrive\\reading\\kb.db');
+	var db2 = new sqlite3.Database(path.join(process.env["OneDriveConsumer"], 'reading', "kb.db"));
 	var storageMemQuiz = new StorageMemQuiz(db2);
 	router.setMemQuizRoutes(app, `${prefix}/mementries`, storageMemQuiz);
 	router.setMemQuizRoutes(app, `${prefix}/memgroups`, storageMemQuiz);

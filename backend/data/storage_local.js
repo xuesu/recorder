@@ -4,6 +4,7 @@ var xssFilters = require('xss-filters');
 var sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
 const utils = require("./utils");
+const path = require("path");
 const scheduler = require("./scheduler_mini_recurring");
 
 
@@ -560,7 +561,7 @@ class Storage {
 		date_txt_provided = date_provided.format("YYYY-MM-DD");
 		
 		var buf = "";
-		var fpath = "C:\\Users\\iris\\OneDrive\\Documents\\Account.csv";
+		var fpath = path.join(process.env["OneDriveConsumer"], 'Documents', "Account.csv");
 		if(fs.existsSync(fpath)){
 			buf = fs.readFileSync(fpath, { encoding: 'utf8' });
 		} else {

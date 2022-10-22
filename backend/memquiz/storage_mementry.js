@@ -2,7 +2,6 @@ require("date-format-lite"); // add date format
 const fs = require('fs');
 const csvparse = require('csv-parse');
 const MySimpleStorage = require("../data/mysimplestorage");
-const { filter } = require("../../samples/common/backbone/underscore");
 
 
 class StorageMemEntry extends MySimpleStorage {
