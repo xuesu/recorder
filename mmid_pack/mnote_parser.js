@@ -368,9 +368,9 @@ function parse_todo_tree(txt, collect_non_top_line=false){
         "status": "doing",
         "date_start": undefined,
         "date_end": undefined,
-        "score": 100.0,
+        "score": 100.0, //100 percent
         "text": "root",
-        "children": treeinfos
+        "children": treeinfos,
     }
     return root;
 }

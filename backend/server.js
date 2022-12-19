@@ -38,6 +38,6 @@ module.exports = function (host = "127.0.0.1", port = "9200"){
 	
 	// start server
 	app.listen(port, host, () => {
-		console.log(`Open http://${host}:${port} to start...`);
+		console.log(`Open http://${host}:${port}/pages/ to start...`);
 	});
 }

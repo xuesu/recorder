@@ -439,6 +439,7 @@ function changeNoteBtnStatus(op) {
 function clearNote(){
     document.getElementById("notes_content").value = "";
     document.getElementById("notes_title").value = "";
+    visProjTODO("");
     changeNoteBtnStatus("CreateMode");
 }
 
@@ -499,10 +500,9 @@ function saveNote() {
             }
             alert("saveNote:" + JSON.stringify(resp));
             if (is_proj_note) {
-                document.getElementById("projNoteTreeContainer").setAttribute("style", "");
                 visProjTODO(data_content);
             } else {
-                document.getElementById("projNoteTreeContainer").setAttribute("style", "display:none;");
+                visProjTODO("");
             }
         }
     }
@@ -533,9 +533,10 @@ function saveNoteEx(){
             var data_content = document.getElementById("notes_content").value;
             mySimpleReq("/scheduler/backend/" + noteExtMode + "/" + date_txt_provided, "POST", (resp) => {
                 alert("saveNoteEx:" + JSON.stringify(resp));
+                visProjTODO(data_content);
                 if(noteExtMode == 'dailycheck'){
                     if (resp.data == undefined) {
-                        changeDailyCheckBtnStatus("create");
+                        changeDailyCheckBtnStatus("create");              
                     } else {
                         changeDailyCheckBtnStatus("view");
                         displayDailyCheckInTable(resp.data.content, "dailyCheckContent", date_txt_provided, just_append=false, edit_disable=true);
@@ -614,33 +615,49 @@ function calProcess4visProjTODO(item, fa_item) {
         item.status = "waiting";
     }
     if (item.children.length > 0) {
-        var lastscore = 100.0;
-        var process_now = 0.0;
         var score_undefined_children = [];
-        var all_failed = true;
-        for (var i = 0; i < item.children.length; i += 1) {
-            var child = item.children[i];
+        var score_defined_children = [];
+        var all_failed = item.children.length > 0;
+        item.children.forEach((child) => {
             calProcess4visProjTODO(child, item);
-            if (child.score < -0.09 || child.score > 100.0) {
+            if (child.score == undefined || child.score < -0.09 || child.score > 1e5) {
                 score_undefined_children.push(child);
-            } else {
-                lastscore -= child.score;
-                process_now += child.score * child.process / 100.0;
+            }
+            else{
+                score_defined_children.push(child);
             }
             if (child.status != "failed") {
                 all_failed = false;
             }
-        }
-        if (score_undefined_children.length > 0) {
-            var avg_score = lastscore / score_undefined_children.length;
-            for (var j = 0; j < score_undefined_children.length; j += 1) {
-                var child = score_undefined_children[j];
-                child.score = avg_score;
-                process_now += child.score * child.process / 100.0;
-            }
-        }
+        });
         if (all_failed && item.status == "doing") item.status = "failed";
-        item.process = process_now;
+        else{
+            var score_sum = 100.0; //100%
+            if (score_undefined_children.length > 0) {
+                let lastscore = 100.0;
+                score_defined_children.forEach((child)=>{
+                    lastscore -= child.score;
+                });
+                if(lastscore < 0.09){
+                    alert("child.score > the score remained in parent! be aware the sum of scores from children should be 100%! in calProcess4visProjTODO");
+                    lastscore = 0;
+                }
+                score_undefined_children.forEach((child)=>{
+                    child.score = lastscore / score_undefined_children.length;
+                });
+            }
+            else {
+                score_sum = 0;
+                score_defined_children.forEach((child)=>{
+                    score_sum += child.score;
+                });
+            }
+            var process_now = 0.0;
+            item.children.forEach((child) => {
+                process_now += child.score * child.process / score_sum;
+            });
+            item.process = process_now;
+        }
     }
     if (item.status == "done") {
         item.process = 100.0;
@@ -650,15 +667,22 @@ function calProcess4visProjTODO(item, fa_item) {
     if (item.process > 99.0) {
         item.status = "done";
     }
-
+    if(item.process != item.process){
+        alert("Nan while calculating item.process!");
+    }
+    if(item.score != item.score){
+        alert("Nan while calculating item.score!");
+    }
 }
 
 function visProjTODO(txt) {
     var root = parse_todo_tree(txt);
     var canvas_element = document.getElementById("projNoteTreeCanvas");
     if(root == undefined || root.children == undefined || root.children.length == 0){
+        document.getElementById("projNoteTreeContainer").setAttribute("style", "display:none;");
         canvas_element.innerHTML = "";
     }else{
+        document.getElementById("projNoteTreeContainer").setAttribute("style", "");
         calProcess4visProjTODO(root, root);
         displaySimpleTrees([root], canvas_element);
     }
@@ -680,10 +704,8 @@ function showNote(id) {
             document.getElementById("notes_content").value = data.content;
             document.getElementById("notes_ispinned").checked = data.is_pinned == "true";
             if (data.is_proj_note == "true") {
-                document.getElementById("projNoteTreeContainer").setAttribute("style", "");
                 visProjTODO(data.content);
             } else {
-                document.getElementById("projNoteTreeContainer").setAttribute("style", "display:none;");
                 visProjTODO("");
             }
             changeNoteBtnStatus("ReadMode");
@@ -713,7 +735,8 @@ function showNoteEx(){
                 else {
                     document.getElementById("notes_title").value = data.title;
                     document.getElementById("notes_content").value = data.content;
-                    changeNoteBtnStatus("ReadMode");
+                    changeNoteBtnStatus("ReadMode");                
+                    visProjTODO(data.content);
                     if(noteExtMode == "dailycheck"){
                         displayDailyCheckInTable(data.content, "dailyCheckContent", document.getElementById("dailyCheckDate").value, just_append=false, edit_disable=true);
                     }
@@ -747,6 +770,7 @@ function deleteNote() {
     } else {
         mySimpleReq("/scheduler/backend/notes/" + idSelected, "DELETE", (resp) => { 
             alert("deleteNote:" + JSON.stringify(resp)); 
+            clearNote();
         });
     }
 }
@@ -766,6 +790,12 @@ function loadExpenses() {
         });
     }
 }
+function hideNotice(notice_id) {
+    var myNoticeListEle = document.getElementById("myNoticeList");
+    var myNoticeEle = document.getElementById("myNotice" + notice_id);
+    myNoticeListEle.removeChild(myNoticeEle);
+    mySimpleReq("/scheduler/backend/notices_hide", "POST", (resp) => alert("hideNotice:" + JSON.stringify(resp)), data = {"id": notice_id});
+}
 
 function displayNotice(data) {
     var myNoticeListEle = document.getElementById("myNoticeList");
@@ -781,6 +811,11 @@ function displayNotice(data) {
         tmpli.className = 'list-group-item list-group-item-danger';
     }
     tmpli.innerText = data.text;
+    tmpli.setAttribute("id", "myNotice" + data.id);
+    var tmplihide = document.createElement("a");
+    tmplihide.innerText = "H";
+    tmplihide.setAttribute("onclick", "hideNotice(" + data.id + ")");
+    tmpli.appendChild(tmplihide);
     myNoticeListEle.insertBefore(tmpli, myNoticeListEle.firstChild);
 }
 

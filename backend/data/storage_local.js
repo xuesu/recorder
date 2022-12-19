@@ -561,12 +561,14 @@ class Storage {
 		date_txt_provided = date_provided.format("YYYY-MM-DD");
 		
 		var buf = "";
-		var fpath = path.join(process.env["OneDriveConsumer"], 'Documents', "Account.csv");
+		var fpath = path.join(process.env["OneDriveConsumer"], "Account.csv");
 		if(fs.existsSync(fpath)){
 			buf = fs.readFileSync(fpath, { encoding: 'utf8' });
 		} else {
-			fpath = "C:\\Users\\a\\OneDrive\\Documents\\Account.csv";
-			buf = fs.readFileSync(fpath, { encoding: 'utf8' });
+			return {
+				action: "error",
+				msg: "cannot find account.csv"
+			}
 		}
 		const lines = buf.split(/\r?\n/);
 		var item = {

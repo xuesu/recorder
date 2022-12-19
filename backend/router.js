@@ -102,6 +102,36 @@ module.exports = {
 		}));
 		
 	},
+	setNoticeRoutes (app, prefix, storage) {
+		app.get(`${prefix}/:id`, callMethod((req) => {
+			type_str = getNoteType(req.url, 1);
+			return storage.getOneByID(type_str, req.params.id);
+		}));
+
+		app.get(`${prefix}`, callMethod((req) => {
+			type_str = getNoteType(req.url, 0);
+			return storage.getAll(type_str, req.query);
+		}));
+
+		app.post(`${prefix}`, callMethod((req) => {
+			type_str = getNoteType(req.url, 0);
+			return storage.insert(type_str, req.body);
+		}));
+
+		app.put(`${prefix}/:id`, callMethod((req) => {
+			type_str = getNoteType(req.url, 1);
+			return storage.update(type_str, req.params.id, req.body);
+		}));
+
+		app.delete(`${prefix}/:id`, callMethod((req) => {
+			type_str = getNoteType(req.url, 1);
+			return storage.delete(type_str, req.params.id);
+		}));
+		
+		app.post(`${prefix}_hide`, callMethod((req) => {
+			return storage.hide_notice_by_id(req.body.id);
+		}));
+	},
 	setNoteExtRoutes (app, prefix, storage) {
 		app.get(`${prefix}/:date_txt_provided`, callMethod((req) => {
 			type_str = getNoteType(req.url, 1);
@@ -158,6 +188,7 @@ module.exports = {
 			return storage.delete(type_str, req.params.id);
 		}));
 	},
+	
 	setMemQuizCSVImportRoutes(app, prefix, storage){
 		app.post(`${prefix}`, callMethod((req) => {
 			return storage.importEntriesByCSV(req.body.fcontent, req.body.lecture_id);

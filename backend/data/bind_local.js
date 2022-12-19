@@ -4,6 +4,7 @@ var sqlite3 = require('sqlite3').verbose();
 const path = require("path");
 const Storage = require("./storage_local");
 const StorageNote = require("./storage_note_local");
+const StorageNotice = require("./storage_notice_local");
 const StorageNoteExt = require("./storage_note_ext_local");
 const StorageMemQuiz = require("../memquiz/storage_mementry");
 
@@ -15,7 +16,8 @@ var setRoutes = (prefix, app, router) => {
 	router.setExpensesRoutes(app, `${prefix}/expenses`, storage);
 	var storageNote = new StorageNote(db);
 	router.setNoteRoutes(app, `${prefix}/notes`, storageNote);
-	router.setNoteRoutes(app, `${prefix}/notices`, storageNote);
+	var storageNotice = new StorageNotice(db);
+	router.setNoticeRoutes(app, `${prefix}/notices`, storageNotice);
 	var storageNoteExt = new StorageNoteExt(storage, storageNote);
 	router.setNoteExtRoutes(app, `${prefix}/monthplan`, storageNoteExt);
 	router.setNoteExtRoutes(app, `${prefix}/weekplan`, storageNoteExt);
