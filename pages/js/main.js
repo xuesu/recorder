@@ -827,17 +827,20 @@ function createNotice() {
     var colon_pos = notice_txt_provided.indexOf(":");
     
     if(colon_pos != -1){
-        var pres = my_parse_line_prefix(line_str.substring(0, colon_pos).trim(), "[level:namestr]-[date_show:mydate|mytimedur]->[date_hide:mydate|mytimedur]", true);
+        var pres = my_parse_line_prefix(notice_txt_provided.substring(0, colon_pos).trim(), "[level:namestr]-[date_show:mydate|mytimedur]->[date_hide:mydate|mytimedur]", true);
         if(pres != undefined){
             notice_date_show = pres.date_show;
             notice_date_hide = pres.date_hide;
             notice_level = pres.level;
-            notice_txt_provided = notice_txt_provided.substr(colon_pos).trim();
+            notice_txt_provided = notice_txt_provided.substr(colon_pos + 1).trim();
         }
     }
     if (notice_txt_provided.length == 0) {
         alert("Please input sth4notice!");
         return;
+    }
+    if(notice_level == undefined){
+        notice_level="info";
     }
     var data = {
         "date_show": mydate2str(notice_date_show),
