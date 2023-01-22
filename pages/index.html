@@ -75,6 +75,7 @@
 				taskSlidesModel.startTaskSlidesRefresh();
 				ko.applyBindings(taskSlidesModel);
 				$('#selectedDetailsTextArea').bind('keydown', myTaskSlideKeydown4selectedDetailsTextArea);
+				$("#slideReasonTextArea").bind("keydown", myTaskSlideKeydown4selectedDetailsTextArea);
 			});
 
 			var dp = new dataProcessor("/scheduler/backend/events");
@@ -146,7 +147,7 @@
 					<a style="width: 10%;" onclick="taskSlidesModel.changeCurrentTaskSelectedInSlides(-1)">&lt;-</a>
 					<a style="width: 50%;" data-bind="text:selectedTaskName">Current Task Name</a>
 					<label style="width: 20%;" id="timerSlides" data-bind="text: countDownV">0:30</label>
-					<a style="width: 5%;" onclick="taskSlidesModel.refreshTaskSlidesRefresh()">R</a>
+					<a style="width: 10%;" onclick="taskSlidesModel.refreshTaskSlidesRefresh()">R</a>
 					<a style="width: 10%;" onclick="taskSlidesModel.changeCurrentTaskSelectedInSlides(1)">-&gt;</a>
 				</div>
 				<div class="mrow" data-bind="css:{animateFlicker:isWarning}">
