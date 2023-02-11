@@ -330,7 +330,7 @@ function parse_todo_line(line_str, treenode_stk, treeinfos, baseday=null){
 }
 
 function parse_todo_tree(txt, collect_non_top_line=false){
-    var lines = txt.split("\n");
+    var lines = txt.replace(/\t/g, "    ").split("\n");
     var todo_line_start_ind = -1;
     var todo_line_end_ind = lines.length;
     for (var i = 0; i < lines.length; i += 1) {

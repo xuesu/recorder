@@ -93,6 +93,7 @@ module.exports = {
 
 		app.put(`${prefix}/:id`, callMethod((req) => {
 			type_str = getNoteType(req.url, 1);
+			req.body.content = req.body.content.replace(/\t/g, "    ");
 			return storage.update(type_str, req.params.id, req.body);
 		}));
 

@@ -156,6 +156,8 @@ class StorageNoteExt {
                 error: "details.text is empty"
             };
         }
+        
+		postdata.text = postdata.text.replace(/\t/g, "    ");
         let name = getNoteEventInstanceName(type_str, date_txt_provided);
 		let rows = await this._event_storage.query_name_sql(name).catch((err) => {
             console.log('Error: ');
@@ -169,7 +171,7 @@ class StorageNoteExt {
             };
 		} 
 		var item = rows[0];
-		item.details = postdata.text;
+		item.details = postdata.text
         var todo_item = note_format_parser.parse_todo_tree(item.details);
         if(todo_item == undefined){
             return {
