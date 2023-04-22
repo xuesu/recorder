@@ -9,7 +9,18 @@ const bindLocalStorage = require("./data/bind_local");
 const router = require("./router");
 
 module.exports = function (host = "127.0.0.1", port = "9200"){
-	app.use(helmet());
+	app.use(helmet({
+		contentSecurityPolicy: {
+			directives: {
+				defaultSrc: ["'self'", host],
+				scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
+				scriptSrcAttr: ["'self'", "'unsafe-inline'"],
+				fontSrc: ["'self'", "fonts.googleapis.com", "fonts.gstatic.com"],
+				styleSrc: ["'self'", "fonts.googleapis.com", "'unsafe-inline'"],
+				objectSrc: ["'none'"],
+			}
+		}
+	}));
 	app.use(morgan("tiny"));
 	
 	// scheduler sends application/x-www-form-urlencoded requests,

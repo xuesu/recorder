@@ -77,6 +77,9 @@ function displayDailyCheckInTable(text, dtableid, date_txt_provided, just_append
             tbody.deleteRow(i);
         }
     }
+    if(text.length == 0){
+        return;
+    }
     let root = parse_todo_tree(text);
     let items = root.children==undefined?[]:root.children;
     for (var i = 0; i < items.length; i++) {
