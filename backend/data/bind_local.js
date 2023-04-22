@@ -9,7 +9,8 @@ const StorageNoteExt = require("./storage_note_ext_local");
 const StorageMemQuiz = require("../memquiz/storage_mementry");
 
 var setRoutes = (prefix, app, router) => {
-	var db = new sqlite3.Database('recorder.db');
+	var db = new sqlite3.Database(path.join(process.env["OneDriveConsumer"], "recorder.db"));
+	//var db = new sqlite3.Database('recorder.db');
 	var storage = new Storage(db);
 	router.setRoutes(app, `${prefix}/events`, storage);
 	router.setStatsRoutes(app, `${prefix}/events_stats`, storage);
