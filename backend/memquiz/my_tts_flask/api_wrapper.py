@@ -8,7 +8,7 @@ import threading
 import utils
 
 libc_dll = None
-
+ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class CFile(ctypes.Structure):
     pass
@@ -32,32 +32,38 @@ class APIWrapper(abc.ABC):
             libc_dll = load_clib_dll()
         self.lib = None
         self.lock = threading.Lock()
+        self.cache_dir = os.path.join(ROOT_DIR, "cache")
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
 
     def _gen_wav_file(self, text, fpath, other_params):
         raise NotImplementedError()
 
     def gen_mp3(self, text, other_params):
-        cached_fpath = os.path.join("cache", utils.clean_improper_punc(text) + ".mp3")
-        if len(text) < 50 and os.path.exists(os.path.join("cache", utils.clean_improper_punc(text) + ".mp3")):
+        cached_fpath = os.path.join(self.cache_dir, utils.clean_improper_punc(text) + ".mp3")
+        if len(text) < 50 and os.path.exists(cached_fpath):
             with open(cached_fpath, "rb") as fin:
                 generated_mp3 = fin.read()
         else:
             self.lock.acquire()
             fname = f"tmp" + datetime.datetime.now().strftime("%H%M%S%f")
-            if not self._gen_wav_file(text, fname + ".wav", other_params):
+            tmp_wav_fpath = os.path.join(self.cache_dir, fname + ".wav")
+            tmp_mp3_fpath = os.path.join(self.cache_dir, fname + ".mp3")
+            print(tmp_mp3_fpath)
+            if not self._gen_wav_file(text, tmp_wav_fpath, other_params):
                 return {"error": "Can not generate wav!!"}
-            if not os.path.exists(fname + ".wav"):
+            if not os.path.exists(tmp_wav_fpath):
                 return {"error": "Can not generate wav!!Cannot find {}.wav!".format(fname)}
-            utils.wav2mp3(fname + ".wav", fname + ".mp3")
-            if not os.path.exists(fname + ".mp3"):
+            utils.wav2mp3(tmp_wav_fpath, tmp_mp3_fpath)
+            if not os.path.exists(tmp_mp3_fpath):
                 return {"error": "Can not generate wav!!Cannot find {}.mp3!".format(fname)}
-            with open(fname + ".mp3", "rb") as fin:
+            with open(tmp_mp3_fpath, "rb") as fin:
                 generated_mp3 = fin.read()
             if len(text) < 50 and other_params.get("try_cache", False):
-                os.remove(fname + ".wav")
-                os.rename(fname + ".mp3", cached_fpath)
+                os.remove(tmp_wav_fpath)
+                os.rename(tmp_mp3_fpath, cached_fpath)
             else:
-                os.remove(fname + ".wav")
-                os.remove(fname + ".mp3")
+                os.remove(tmp_wav_fpath)
+                os.remove(tmp_mp3_fpath)
             self.lock.release()
         return {"data": base64.b64encode(generated_mp3).decode('ascii')}

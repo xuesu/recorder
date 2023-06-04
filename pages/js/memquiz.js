@@ -95,7 +95,7 @@ function enableMemQuiz(){
 						<button onclick="reorderMemEntriesList()">Reorder</button>
 					</div>
                     <input id="memquiz_csv_input" type="file" accept=".csv" oninput="importMemEntriesByCSV()">Import from CSV</input>
-					<audio id="memquiz_audio" controls></audio>
+					<audio id="memquiz_audio" controls crossorigin="anonymous"></audio>
 				</div>
 				<div id="memquiz_view">
 					<div id="memquiz_view_list">
@@ -415,7 +415,9 @@ function playAudio(data){
     data = base64ToByteArray(data);
     let audio_ele = document.getElementById("memquiz_audio");
     if(data != undefined){
-        let audio_data = new Blob(data, {"type": "audio/wav"});
+        let audio_data = new Blob(data, {"type": "audio/mp3"});
+        console.log(data);
+        console.log(audio_data);
         audio_src_mementry = window.URL.createObjectURL(audio_data);
         audio_ele.src = audio_src_mementry;
     }

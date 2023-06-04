@@ -17,7 +17,8 @@ backend/memquiz/my_tts_flask/.idea
 backend/memquiz/my_tts_flask/__pycache__
 /.vscode
 /speech_syn
-
+backend/memquiz/.venv/
+backend/memquiz/ffmpeg-2023-05-31-git-baa9fccf8d-full_build/
 *.tsv
 *.csv
 *.db

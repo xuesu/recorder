@@ -12,12 +12,13 @@ module.exports = function (host = "127.0.0.1", port = "9200"){
 	app.use(helmet({
 		contentSecurityPolicy: {
 			directives: {
-				defaultSrc: ["'self'", host],
+				defaultSrc: ["'self'", "blob:", host, "127.0.0.1:9201", "127.0.0.1:9200"],
+				mediaSrc: ["'self'", "blob:", host, "127.0.0.1:9201", "127.0.0.1:9200"],
 				scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
 				scriptSrcAttr: ["'self'", "'unsafe-inline'"],
 				fontSrc: ["'self'", "fonts.googleapis.com", "fonts.gstatic.com"],
 				styleSrc: ["'self'", "fonts.googleapis.com", "'unsafe-inline'"],
-				objectSrc: ["'none'"],
+				objectSrc: ["'self'", "blob:"],
 			}
 		}
 	}));
