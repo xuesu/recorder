@@ -1,47 +1,47 @@
-function getCurrentDateStr(date_now, with_hour){
-    if(date_now == undefined)date_now = new Date();
-	var date_str = date_now.getFullYear() + "-" + String(date_now.getMonth() + 1).padStart(2, '0') + "-" + String(date_now.getDate()).padStart(2, '0');
-    if(with_hour){
-        date_str += " " + String(date_now.getHours()).padStart(2, '0') + ":" +  String(date_now.getMinutes()).padStart(2, '0');
+function getCurrentDateStr(date_now, with_hour) {
+    if (date_now == undefined) date_now = new Date();
+    var date_str = date_now.getFullYear() + "-" + String(date_now.getMonth() + 1).padStart(2, '0') + "-" + String(date_now.getDate()).padStart(2, '0');
+    if (with_hour) {
+        date_str += " " + String(date_now.getHours()).padStart(2, '0') + ":" + String(date_now.getMinutes()).padStart(2, '0');
     }
     return date_str;
 }
 
-function SetMapArr2Arr(arr){
+function SetMapArr2Arr(arr) {
     var res = [];
-    if(arr instanceof Map){
+    if (arr instanceof Map) {
         res = [...arr.values()];
     }
-    else if(arr instanceof Array){
+    else if (arr instanceof Array) {
         res = arr;
     }
-    else if(arr instanceof Set){
+    else if (arr instanceof Set) {
         res = [...arr];
     }
     return res;
 }
 
-function getSortedElesFromArrays(ids, arr){
+function getSortedElesFromArrays(ids, arr) {
     var ids_arr = SetMapArr2Arr(ids);
-    ids_arr.sort((a, b)=>(a - b));
+    ids_arr.sort((a, b) => (a - b));
     var res = [];
-    for(var id of ids_arr){
-        if(arr instanceof Map){
+    for (var id of ids_arr) {
+        if (arr instanceof Map) {
             res.push(arr.get(id));
-        }else{
+        } else {
             res.push(arr[id]);
         }
     }
     return res;
 }
 
-function getElesFromArrays(ids, arr){
+function getElesFromArrays(ids, arr) {
     var ids_arr = SetMapArr2Arr(ids);
     var res = [];
-    for(var id of ids_arr){
-        if(arr instanceof Map){
+    for (var id of ids_arr) {
+        if (arr instanceof Map) {
             res.push(arr.get(id));
-        }else{
+        } else {
             res.push(arr[id]);
         }
     }
@@ -49,7 +49,7 @@ function getElesFromArrays(ids, arr){
 }
 
 function base64ToByteArray(base64String) {
-    try {            
+    try {
         var sliceSize = 1024;
         var byteCharacters = atob(base64String);
         var bytesLength = byteCharacters.length;
@@ -73,87 +73,131 @@ function base64ToByteArray(base64String) {
     }
 }
 
-function items_with_id2map(arr){
+function items_with_id2map(arr) {
     var mp = new Map();
     arr.sort((a, b) => a.id - b.id);
-    for(var i = 0; i < arr.length;i+=1){
+    for (var i = 0; i < arr.length; i += 1) {
         mp.set(arr[i].id, arr[i]);
     }
-    if(mp.size != arr.length){
+    if (mp.size != arr.length) {
         alert("Key redundant in items_with_id2map");
     }
     return mp;
 }
 
-function items_with_id2id_set(arr){
+function items_with_id2id_set(arr) {
     var st = new Set();
-    for(var i = 0; i < arr.length;i+=1){
+    for (var i = 0; i < arr.length; i += 1) {
         st.add(arr[i].id);
     }
-    if(st.size != arr.length){
+    if (st.size != arr.length) {
         alert("Key redundant in items_with_id2id_set");
     }
     return st;
 }
 
-function normalStringToElementP(str) {
-	return "<p>" + String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').split("\n").join("</p><p>") + "</p>";
+function isJson(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+
+function object2str(oj) {
+    if (typeof oj != "string") return JSON.stringify(oj);
+    return oj;
+}
+
+function normalStringToElementP(s) {
+    if (typeof s != "string") s = String(s);
+    return "<p>" + s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').split("\n").join("</p><p>") + "</p>";
 }
 
 Element.prototype.getElementById = function (id) {
-	return this.querySelector("#" + id);
+    return this.querySelector("#" + id);
 }
 
 Element.prototype.getElementsByName = function (name) {
-	return this.querySelectorAll("[name=\"" + name + "\"]");
+    return this.querySelectorAll("[name=\"" + name + "\"]");
 }
 
 function showElementById(elementID) {
-	//document.getElementById(elementID).setAttribute("style", "visibility: visible;")
+    //document.getElementById(elementID).setAttribute("style", "visibility: visible;")
     document.getElementById(elementID).setAttribute("style", "display: block;");
 }
 
 function hideElementById(elementID) {
-	//document.getElementById(elementID).setAttribute("style", "visibility: hidden;")
+    //document.getElementById(elementID).setAttribute("style", "visibility: hidden;")
     document.getElementById(elementID).setAttribute("style", "display : none;");
 }
 
-function hideOtherChildAndVisThisChild(father_id, child_id){
+function hideOtherChildAndVisThisChild(father_id, child_id) {
     var father_ele = document.getElementById(father_id);
-    for(var child of father_ele.children){
-        if(child.getAttribute("id") == child_id){
+    for (var child of father_ele.children) {
+        if (child.getAttribute("id") == child_id) {
             showElementById(child_id);
-        }else{
+        } else {
             hideElementById(child.getAttribute("id"));
         }
     }
 }
 
 function clear_all_info_tr(table_ele) {
-	for (var i = table_ele.getElementsByTagName("tr").length - 1; i >= 0; i--) {
-		table_ele.deleteRow(i);
-	}
+    for (var i = table_ele.getElementsByTagName("tr").length - 1; i >= 0; i--) {
+        table_ele.deleteRow(i);
+    }
 }
 
 function show_diff_time(x) {
-	var x = Math.floor(x / 1000);
-	var hour = Math.floor(x / 3600);
-	var min = Math.floor((x % 3600) / 60);
-	var sec = Math.floor((x % 3600) % 60);
-	return hour + " hour " + min + " min " + sec + " sec";
+    var x = Math.floor(x / 1000);
+    var hour = Math.floor(x / 3600);
+    var min = Math.floor((x % 3600) / 60);
+    var sec = Math.floor((x % 3600) % 60);
+    return hour + " hour " + min + " min " + sec + " sec";
 }
 
 function getRandomArbitrary(min, max) {
     return Math.round(Math.random() * (max - min) + min);
 }
 
-function shuffle(arr){
+function shuffle(arr) {
     var new_arr = [];
     var org_arr = [...arr];
-    for(var i = 0; i < org_arr.length;i+=1){
+    for (var i = 0; i < org_arr.length; i += 1) {
         var rid = getRandomArbitrary(i, org_arr.length - 1);
         new_arr.push(org_arr[rid]);
         org_arr[rid] = org_arr[i];
     }
     return new_arr;
+}
+
+const promiseWithTimeout = (promise, t) => {
+    let timeoutID;
+    const tp = new Promise((_, reject) => {
+        timeoutID = setTimeout(() => { reject(new Error("Request time out")); }, t);
+    });
+    return {
+        promiseOrTimeout: Promise.race([promise, tp]),
+        timeoutID
+    };
+}
+
+async function lockWithTimeout(fn, args, lockname, timeout) {
+    const { promiseOrTimeout, timeoutId } = promiseWithTimeout(
+        navigator.locks.request(lockname, async _ => fn(args)),
+        timeout
+    );
+    let res = null;
+    let okay = true;
+    try {
+        res = await promiseOrTimeout;
+    } catch (err) {
+        console.log(err);
+        okay = false;
+    } finally {
+        clearTimeout(timeoutId);
+    }
+    return [res, okay];
 }

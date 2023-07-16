@@ -26,6 +26,8 @@ const group_name2enabled_memtest = {
     "Japanese_Audible": new Set(["main_audible_name2text", "main_text2name"]),
 };
 
+const audible_details_attrs = ["examples", "conjugation"];
+
 const favorite_group_id = 5;
 var memEntryViewModeSelected = "";
 var id2membook = new Map();
@@ -52,6 +54,8 @@ var mementry_test_list = [];
 var mementry_test_ind = 0;
 var mementry_id2subhistogram = new Map();
 var is_under_review = false;
+var audible_string_store2id = new Map();
+var audible_string_store2string = new Map();
 
 
 function openMemQuizTab(){
@@ -69,7 +73,7 @@ function switchMemEntryViewMode(new_mode){
     }
     hideOtherChildAndVisThisChild("memquiz_view", "memquiz_view_" + new_mode);
     if(mementry_ids_under_test_list.length > 0){
-        if(new_mode == "card")displayMemEntry(mementry_ids_under_test_list[0]);
+        if(new_mode == "card")displayMemEntryCard(mementry_ids_under_test_list[0]);
     }
     memEntryViewModeSelected = new_mode;
 }
@@ -114,14 +118,16 @@ function enableMemQuiz(){
                             </div>
                         </div>
 						<div class="card-body center" id="memquiz_view_card_body">
-							<div class="card-text" id="memquiz_view_card_body_name" onclick="hideOtherChildAndVisThisChild('memquiz_view_card_body', 'memquiz_view_card_body_text')">
+							<div class="card-text" id="memquiz_view_card_body_name" onclick="hideOtherChildAndVisThisChild('memquiz_view_card_body', 'memquiz_view_card_body_text_and_details', 1)">
                             name
                             </div>
-							<div class="card-text" id="memquiz_view_card_body_text" onclick="hideOtherChildAndVisThisChild('memquiz_view_card_body', 'memquiz_view_card_body_name')" style="display:none;">
-                            text
-                            </div>
-							<div class="card-text" id="memquiz_view_card_body_other" style="display:none;">
-                            other
+                            <div id="memquiz_view_card_body_text_and_details" style="display:none;">
+                                <div class="card-text" id="memquiz_view_card_body_text" onclick="hideOtherChildAndVisThisChild('memquiz_view_card_body', 'memquiz_view_card_body_name')">
+                                text
+                                </div>
+                                <div class="card-text" id="memquiz_view_card_body_details">
+                                -
+                                </div>
                             </div>
 						</div>
 					</div>
@@ -162,11 +168,12 @@ function enableMemQuiz(){
 }
 
 function recvMemBooks(data_recv){
-    id2membook = items_with_id2map(data_recv);
+    id2membook = Object.freeze(items_with_id2map(data_recv));
+    membook_id2lecture_ids = {};
 }
 
 function recvMemLectures(data_recv){
-    id2memlecture = items_with_id2map(data_recv);
+    id2memlecture = Object.freeze(items_with_id2map(data_recv));
     id2memlecture.forEach((lecture)=>{
         var book = id2membook.get(lecture.book_id);
         if(!(book.id in membook_id2lecture_ids)){
@@ -177,7 +184,7 @@ function recvMemLectures(data_recv){
 }
 
 function recvMemGroups(data_recv){
-    id2memgroup = items_with_id2map(data_recv);
+    id2memgroup = Object.freeze(items_with_id2map(data_recv));
     id2memgroup.forEach((memgroup)=>{
         if(memgroup.name == 'Favorite'){
             if(memgroup.id != favorite_group_id)alert("Please check kb.db, The group id of Favorite is not " + favorite_group_id);
@@ -318,10 +325,11 @@ function clear_displayMemEntry(){
     document.getElementById("memquiz_view_card_title").innerText = "Card Title";
     document.getElementById("memquiz_view_card_body_name").innerText = "name";
     document.getElementById("memquiz_view_card_body_text").innerText = "text";
+    document.getElementById("memquiz_view_card_body_details").innerText = "-";
     mementryIDSelected = -1;
 }
 
-function displayMemEntry(mem_entry_id){
+async function displayMemEntryCard(mem_entry_id){
     if(mementryIDSelected != mem_entry_id){
         if(mem_entry_id < 0){
             clear_displayMemEntry();
@@ -330,22 +338,26 @@ function displayMemEntry(mem_entry_id){
             document.getElementById("memquiz_view_card_title").innerText = " Book:" + membookIDSelected + " " + mementry_ids_source["tp"] + ":" + mementry_ids_source["id"] + " Entry:" + mem_entry_id;
             document.getElementById("memquiz_view_card_body_name").innerText = mem_entry.name;
             document.getElementById("memquiz_view_card_body_text").innerText = mem_entry.text;
-            mementryIDSelected = mem_entry_id;
-            ttsAndPlay_by_mementry_id(mementryIDSelected);
+            let details_html_arr =  await getHTMLOfMemEntryDetails(mem_entry, false);
+            document.getElementById("memquiz_view_card_body_details").innerHTML = details_html_arr.join("\n");
+            let mementryIDSelected = mem_entry_id;
             document.getElementById("memquiz_view_card_play").onclick = ()=>(ttsAndPlay_by_mementry_id(mementryIDSelected));
+            ttsAndPlay_by_mementry_id(mementryIDSelected);
         }
     }
 }
 
-function displayMemEntryTest(mem_entry_id){
+async function displayMemEntryTest(mem_entry_id){
     if(mementryIDSelected != mem_entry_id){
         if(mem_entry_id < 0){
             clear_displayMemEntry();
         }else{
-            var mem_entry = id2mementry.get(mem_entry_id);
+            var mem_entry = id2mementry.get(mem_entry_id); // TODO
             document.getElementById("memquiz_view_card_title").innerText = " Book:" + membookIDSelected + " " + mementry_ids_source["tp"] + ":" + mementry_ids_source["id"] + " Entry:" + mem_entry_id;
             document.getElementById("memquiz_view_card_body_name").innerText = mem_entry.name;
             document.getElementById("memquiz_view_card_body_text").innerText = mem_entry.text;
+            let details_html_arr =  await getHTMLOfMemEntryDetails(mem_entry, false);
+            document.getElementById("memquiz_view_card_body_details").innerHTML = details_html_arr.join("\n");
             mementryIDSelected = mem_entry_id;
             ttsAndPlay_by_mementry_id(mementryIDSelected);
             document.getElementById("memquiz_view_card_play").onclick = ()=>(ttsAndPlay_by_mementry_id(mementryIDSelected));
@@ -353,13 +365,48 @@ function displayMemEntryTest(mem_entry_id){
     }
 }
 
-function displayMemEntriesInTable(table_ele, mem_entries){
+async function getHTMLOfMemEntryDetails(mem_entry, flat=false, with_attr_name=true){
+    if(!"details" in mem_entry || !isJson(mem_entry["details"])){
+        return [];
+    }
+    let details = JSON.parse(mem_entry["details"]);
+    let current_audio_group_id = get_audible_group_id_by_entry_id(mem_entry.id);
+    let res = [];
+    for(var mementry_attr in details){
+        mementry_value = details[mementry_attr];
+        if(Array.isArray(mementry_value) && typeof myVar != 'string'){
+            values = mementry_value;
+
+        }else{
+            values = [mementry_value];
+        }
+        for(var i = 0;i < values.length;i+=1){
+            let currentvaluestr = object2str(values[i]);
+            let eleres= normalStringToElementP(currentvaluestr) + "\n";
+            if(with_attr_name){
+                eleres = normalStringToElementP(object2str(mementry_attr)) + "\n" + eleres;
+            }
+            if(current_audio_group_id != -1 && audible_details_attrs.includes(mementry_attr)){
+                let sid = await get_id_from_audible_string_store2id(currentvaluestr);
+                if(sid != -1){
+                    eleres += "<button onclick='ttsAndPlay_by_sid(" + current_audio_group_id + ", " + sid + ")'>🔊</button>\n";
+                }
+            }
+            res.push(eleres);
+        }
+    }
+    if(flat)return [res.join("\n")];
+    return res;
+}
+
+async function displayMemEntriesInTable(table_ele, mem_entries){
     clear_all_info_tr(table_ele);
 	for(var i = 0;i < mem_entries.length;i+=1) {
+        values_html_arr = ["<button onclick='ttsAndPlay_by_mementry_id(" + mem_entries[i].id + ")'>🔊</button>", normalStringToElementP(mem_entries[i]['text'])].concat(await getHTMLOfMemEntryDetails(mem_entries[i], false));
 		add_info_tr_ex_with_html(
             "r" + mem_entries[i].id,
             mem_entries[i]['name'], 
-            ["<button onclick='ttsAndPlay_by_mementry_id(" + mem_entries[i].id + ")'>🔊</button>" + normalStringToElementP(mem_entries[i]['text'])],
+            values_html_arr,
             table_ele
         );
 	}
@@ -374,7 +421,7 @@ function displayMemEntries(mem_entries){
         if(mem_entries.length > 0){
             mementry_id = mem_entries[0].id;
         }
-        displayMemEntry(mementry_id);
+        displayMemEntryCard(mementry_id);
     }
 }
 
@@ -416,8 +463,6 @@ function playAudio(data){
     let audio_ele = document.getElementById("memquiz_audio");
     if(data != undefined){
         let audio_data = new Blob(data, {"type": "audio/mp3"});
-        console.log(data);
-        console.log(audio_data);
         audio_src_mementry = window.URL.createObjectURL(audio_data);
         audio_ele.src = audio_src_mementry;
     }
@@ -440,30 +485,70 @@ function ttsAndPlay(text, model_name, lang, mp3datacallback, other_params){
     });
 }
 
-function get_model_and_lang_by_entry_id(entry_id){
+function get_audible_group_id_by_entry_id(entry_id){
     if(!id2mementry.has(entry_id)){
-        return "";
+        return -1;
     }
     var lecture_id = id2mementry.get(entry_id).lecture_id;
     if(!id2memlecture.has(lecture_id)){
-        return "";
+        return -1;
     }
     var book_id = id2memlecture.get(lecture_id).book_id;
     var book =  id2membook.get(book_id);
     for(var group_id of book.group_ids){
-        if(group_id in audible_group_id2model_lang){
-            return audible_group_id2model_lang[group_id];
-        }
+        return group_id;
     }
-    return "";
+    return -1;
+}
+
+function get_model_and_lang_by_entry_id(entry_id){
+    let group_id = get_audible_group_id_by_entry_id(entry_id);
+    if(group_id == -1)return "";
+    return audible_group_id2model_lang[group_id];
 }
 
 function ttsAndPlay_by_mementry_id(entry_id, mp3datacallback){
-    var model_and_lang = get_model_and_lang_by_entry_id(entry_id);
+    let model_and_lang = get_model_and_lang_by_entry_id(entry_id);
     if(model_and_lang.length == 0){
         alert("Cannot understand how to speak entry" + entry_id);
+        return;
     }
     ttsAndPlay(id2mementry.get(entry_id).name, model_and_lang["model"], model_and_lang["lang"], mp3datacallback, {"try_cache": true});
+}
+
+
+function ttsAndPlay_by_string(audible_group_id, s, mp3datacallback){
+    if(!audible_group_id in audible_group_id2model_lang){
+        alert("Cannot understand how to speak in group_id" + audible_group_id);
+        return;
+    }
+    let model_and_lang = audible_group_id2model_lang[audible_group_id];
+    ttsAndPlay(s, model_and_lang["model"], model_and_lang["lang"], mp3datacallback, {"try_cache": true});
+}
+
+function ttsAndPlay_by_sid(audible_group_id, sid, mp3datacallback){
+    let s = get_string_from_audible_string_store2id(sid);
+    if(s.length == 0){
+        alert("Cannot find the string of sid " + sid);
+        return;
+    }
+    ttsAndPlay_by_string(audible_group_id, s, mp3datacallback);
+}
+
+async function get_id_from_audible_string_store2id(s){
+    if(audible_string_store2id.has(s))return audible_string_store2id.get(s);
+    const [new_id, okay] = await lockWithTimeout((s)=>{
+        let new_id = audible_string_store2id.size;
+        audible_string_store2id.set(s, new_id);
+        audible_string_store2string.set(new_id, s);
+        return new_id;
+    }, s, "audible_string_store2id", 10000);
+    if(!okay)return -1;
+    return new_id;
+}
+
+function get_string_from_audible_string_store2id(id){
+    return audible_string_store2string.get(id);
 }
 
 function stopPlayAllMemEntries(){
@@ -540,7 +625,7 @@ function shift_next_mementry(id_delta){
     var ind_now = mementry_ids_under_test_list.findIndex((x)=>x == mementryIDSelected);
     if(ind_now == -1)ind_now = 0;
     let id = mementry_ids_under_test_list[(ind_now + id_delta + mementry_ids_under_test_list.length) % mementry_ids_under_test_list.length];
-    displayMemEntry(id);
+    displayMemEntryCard(id);
 }
 
 function myMemquizCardKeydown(event){

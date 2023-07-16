@@ -13,13 +13,14 @@ class StorageMemEntry extends MySimpleStorage {
             "text"	TEXT,
             PRIMARY KEY("id" AUTOINCREMENT)
         );
-        CREATE TABLE IF NOT EXISTS "mementries" (
+        CREATE TABLE "mementries" (
             "id"	INTEGER UNIQUE,
             "name"	TEXT NOT NULL DEFAULT 'Empty',
-            "text"	BLOB,
-            "lecture_id" INTEGER,
+            "text"	TEXT,
+            "details"	TEXT,
+            "lecture_id"	INTEGER,
             "group_ids"	TEXT,
-            "is_learning"	TEXT DEFAULT 'false', 
+            "is_learning"	TEXT DEFAULT 'false',
             "time_create"	TEXT,
             "last_err_time"	TEXT,
             "leading_id"	INTEGER,
