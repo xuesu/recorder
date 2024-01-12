@@ -340,7 +340,7 @@ async function displayMemEntryCard(mem_entry_id){
             document.getElementById("memquiz_view_card_body_text").innerText = mem_entry.text;
             let details_html_arr =  await getHTMLOfMemEntryDetails(mem_entry, false);
             document.getElementById("memquiz_view_card_body_details").innerHTML = details_html_arr.join("\n");
-            let mementryIDSelected = mem_entry_id;
+            mementryIDSelected = mem_entry_id;
             document.getElementById("memquiz_view_card_play").onclick = ()=>(ttsAndPlay_by_mementry_id(mementryIDSelected));
             ttsAndPlay_by_mementry_id(mementryIDSelected);
         }
