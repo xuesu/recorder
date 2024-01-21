@@ -32,19 +32,32 @@ class APIWrapper(abc.ABC):
             libc_dll = load_clib_dll()
         self.lib = None
         self.lock = threading.Lock()
+        self.fixed_cache_dir = os.path.join(ROOT_DIR, "fixed_cache")
         self.cache_dir = os.path.join(ROOT_DIR, "cache")
-        if not os.path.exists(self.cache_dir):
-            os.makedirs(self.cache_dir)
+        for adir in [self.cache_dir, self.fixed_cache_dir]:
+            if not os.path.exists(adir):
+                os.makedirs(adir)
 
     def _gen_wav_file(self, text, fpath, other_params):
         raise NotImplementedError()
 
+    @staticmethod
+    def get_cache_fpath(cache_dir, text, lang):
+        return os.path.join(cache_dir, f"{lang}_{utils.clean_improper_punc(text)}.mp3")
+
     def gen_mp3(self, text, other_params):
-        cached_fpath = os.path.join(self.cache_dir, utils.clean_improper_punc(text) + ".mp3")
-        if len(text) < 50 and os.path.exists(cached_fpath):
-            with open(cached_fpath, "rb") as fin:
-                generated_mp3 = fin.read()
-        else:
+        assert "lang" in other_params
+        found = False
+        for cache_dir in [self.fixed_cache_dir, self.cache_dir]:
+            cached_fpath = APIWrapper.get_cache_fpath(cache_dir, text, other_params["lang"])
+            if len(text) < 50 and os.path.exists(cached_fpath):
+                with open(cached_fpath, "rb") as fin:
+                    generated_mp3 = fin.read()
+                found = True
+                break
+            
+        if not found:
+            cached_fpath = APIWrapper.get_cache_fpath(self.cache_dir, text, other_params["lang"])
             self.lock.acquire()
             fname = f"tmp" + datetime.datetime.now().strftime("%H%M%S%f")
             tmp_wav_fpath = os.path.join(self.cache_dir, fname + ".wav")
