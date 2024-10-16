@@ -42,6 +42,7 @@ class SAPI5Wrapper(api_wrapper.APIWrapper):
         self.lib.uninit(self.psettings)
 
     def _gen_wav_file(self, text, fpath, other_params):
+        print("generating wav for ", text)
         self.lib.init(True)
         voice_id = IRIS_SAPI_ENABLED_LANG2ID[other_params["lang"]]
         bfpath = fpath.encode('utf-8')

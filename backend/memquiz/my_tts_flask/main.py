@@ -30,6 +30,7 @@ def simple_tts():
             found = True
     if not found:
         return {"error": "unknown language"}
+    print("simple_tts", data)
     return api_wrapper.gen_mp3(data["text"], other_params)
 
 

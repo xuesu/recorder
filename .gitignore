@@ -13,6 +13,7 @@ backend/memquiz/pcaudiolib/
 backend/memquiz/ffmpeg-2022-08-29-git-f99d15cca0-essentials_build/bin
 backend/memquiz/espeak-1.48.04-source
 backend/memquiz/my_tts_flask/cache
+backend/memquiz/my_tts_flask/fixed_cache
 backend/memquiz/my_tts_flask/.idea
 backend/memquiz/my_tts_flask/__pycache__
 /.vscode

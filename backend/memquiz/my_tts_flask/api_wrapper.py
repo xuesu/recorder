@@ -46,6 +46,7 @@ class APIWrapper(abc.ABC):
         return os.path.join(cache_dir, f"{lang}_{utils.clean_improper_punc(text)}.mp3")
 
     def gen_mp3(self, text, other_params):
+        print("generating mp3 for", text)
         assert "lang" in other_params
         found = False
         for cache_dir in [self.fixed_cache_dir, self.cache_dir]:
