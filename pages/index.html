@@ -187,23 +187,24 @@
 			</div>
 			<div class="tab-pane" id="notes_tab">
 				<div class="row bg2">
-					<div class="col-md-6 text-center" style='min-height: 900px;'>
+					<div class="col-12 col-md-6 text-center" style='min-height: 900px;'>
 						<input id="notes_title" />
 						<label id="notes_create_date"></label>
 						<hr style="width:100%;">
 						<textarea id="notes_content" style="min-width: 600px; min-height: 600px;"></textarea>
 						<div>
-							<label id="notes_ispinned_label"  for="notes_ispinned">Is Pinned?</label>
+							<label id="notes_ispinned_label" for="notes_ispinned">Is Pinned?</label>
 							<input type="checkbox" id="notes_ispinned" name="notes_ispinned">
+							<input id="notes_pinnedlevel" name="notes_pinnedlevel" style="width:50px">
 							<button id="newNoteBtn" onclick="newNoteEx()">New</button>
 							<button id="editNoteBtn" onclick="editNoteEx()">Edit</button>
 							<button id="saveNoteBtn" onclick="saveNoteEx()" style="display: none;">Save</button>
 							<button id="deleteNoteBtn" onclick="deleteNoteEx()">Delete</button>
-							<input id="idSelectedInput" disabled />
+							<input id="idSelectedInput" style="width:50px"disabled />
 							<input id="noteExtModeInput" disabled />
 						</div>
 					</div>
-					<div class="col-md-6 text-center"  id="projNoteTreeContainer"  style="display: none;">
+					<div class="col-12 col-md-6 text-center"  id="projNoteTreeContainer"  style="display: none;">
 						<span>The sum of the score of children are supposed to be 100% unless all scores of children specified!</span>
 						<table id="table_node_details" class="table table-striped table-dark center"></table>
 						<div id="projNoteTreeCanvas" style="min-width: 600px; min-height: 600px;" ></div>

@@ -83,7 +83,7 @@ module.exports = {
 		}));
 		app.get(`${prefix}_titles`, callMethod((req) => {
 			type_str = getNoteType(req.url, 0);
-			return storage.getAllNoteTitleWithID(type_str, req.query);
+			return storage.getAllNoteTitleWithIDSorted(type_str, req.query);
 		}));
 
 		app.post(`${prefix}`, callMethod((req) => {

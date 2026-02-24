@@ -10,10 +10,10 @@ class StorageNote extends MySimpleStorage{
 			"content"	TEXT NOT NULL,
 			"date_create"	TEXT NOT NULL,
 			"is_proj_note"	TEXT NOT NULL DEFAULT 'false', 
-			"is_pinned"	TEXT NOT NULL DEFAULT 'false'
+			"pinned_level"	INTEGER NOT NULL DEFAULT -1
 		);`, 
 		{
-			"mynotes": ["id", "title", "content", "date_create", "is_pinned", "is_proj_note"],
+			"mynotes": ["id", "title", "content", "date_create", "pinned_level", "is_proj_note"],
 		}, 
 		{
 			"note": "mynotes",
@@ -33,8 +33,14 @@ class StorageNote extends MySimpleStorage{
 	}
 
 	query_all_notes_by_title_sql(title, is_pinned){
+		var sql_text = "";
+		if(is_pinned){
+			sql_text = "SELECT * FROM mynotes where title = ? and pinned_level >= 0";
+		}else{
+			sql_text = "SELECT * FROM mynotes where title = ? and pinned_level = -1";
+		}
 		return new Promise((resolve, reject) => this._db.all(
-			"SELECT * FROM mynotes where title = ? and is_pinned = ?", [title, is_pinned], (err, rows) => {
+			sql_text, [title], (err, rows) => {
 				if (err) {
 					console.log('Error running query_all');
 					console.error(err);
@@ -46,9 +52,9 @@ class StorageNote extends MySimpleStorage{
 		))
 	}
 
-	query_id_title_of_all_pinned_notes_sql() {
+	query_id_title_of_all_pinned_notes_sorted_sql() {
 		return new Promise((resolve, reject) => this._db.all(
-			`SELECT id,title FROM mynotes where is_pinned = 'true'`, [], (err, rows) => {
+			`SELECT id,title FROM mynotes where pinned_level >= 0 ORDER BY pinned_level DESC`, [], (err, rows) => {
 				if (err) {
 					console.log('Error running query_id_title_of_all_pinned_notes_sql');
 					console.error(err);
@@ -61,11 +67,11 @@ class StorageNote extends MySimpleStorage{
 	}
 
 	// get events from the table, use dynamic loading if parameters sent
-	async getAllNoteTitleWithID(type_str) {
+	async getAllNoteTitleWithIDSorted(type_str) {
 		if(type_str != "note"){
 			throw new Error("Can only retrieve titles of note!");
 		}
-		return this.query_id_title_of_all_pinned_notes_sql().then((rows) => {
+		return this.query_id_title_of_all_pinned_notes_sorted_sql().then((rows) => {
 			return {
 				data: rows
 			};

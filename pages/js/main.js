@@ -432,10 +432,12 @@ function changeNoteBtnStatus(op) {
     if(noteExtMode != ""){
         document.getElementById("notes_ispinned_label").setAttribute("style", "display: none;");
         document.getElementById("notes_ispinned").setAttribute("style", "display: none;");
+        document.getElementById("notes_pinnedlevel").setAttribute("style", "display: none;");
     }
     else{    
         document.getElementById("notes_ispinned_label").setAttribute("style", "");
         document.getElementById("notes_ispinned").setAttribute("style", "");
+        document.getElementById("notes_pinnedlevel").setAttribute("style", "");
     }
 }
 
@@ -474,7 +476,14 @@ function newNoteEx(){
 }
 
 function saveNote() {
-    var is_pinned = document.getElementById("notes_ispinned").checked;
+    var pinned_level = -1;
+    if (document.getElementById("notes_ispinned").checked) {
+        pinned_level = parseInt(document.getElementById("notes_pinnedlevel").value);
+        if(pinned_level != pinned_level){
+            pinned_level = 0;
+        }
+    }
+
     var is_proj_note = document.getElementById("notes_title").value.startsWith("Proj: ");
     var data_content = document.getElementById("notes_content").value;
     if(is_proj_note){
@@ -484,7 +493,7 @@ function saveNote() {
     var data = {
         "title": document.getElementById("notes_title").value,
         "content": data_content,
-        "is_pinned": is_pinned,
+        "pinned_level": pinned_level,
         "is_proj_note": is_proj_note
     };
     var callbackfn = function (resp) {
@@ -493,7 +502,7 @@ function saveNote() {
         } else {
             if (idSelected == -1) {
                 idSelected = resp.tid;
-                if (document.getElementById("notes_ispinned").checked) {
+                if (pinned_level >= 0) {
                     var tmpa = document.createElement("a");
                     tmpa.innerText = document.getElementById("notes_title").value;
                     tmpa.setAttribute("href", "javascript:void(0)");
@@ -705,7 +714,8 @@ function showNote(id) {
         } else {
             document.getElementById("notes_title").value = data.title;
             document.getElementById("notes_content").value = data.content;
-            document.getElementById("notes_ispinned").checked = data.is_pinned == "true";
+            document.getElementById("notes_ispinned").checked = data.pinned_level >= 0;
+            document.getElementById("notes_pinnedlevel").value = data.pinned_level;
             if (data.is_proj_note == "true") {
                 visProjTODO(data.content);
             } else {
