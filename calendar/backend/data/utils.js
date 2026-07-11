@@ -26,6 +26,19 @@ class MyUtils{
 		return typeof v==='object' && v!==null && !(v instanceof Array) && !(v instanceof Date);
 	}
 
+	static toISO8601WithOffset(d) {
+		const offset = -d.getTimezoneOffset();
+		const sign = offset >= 0 ? "+" : "-";
+		const pad = (n) => String(Math.abs(n)).padStart(2, "0");
+		return d.getFullYear() + "-" +
+			pad(d.getMonth() + 1) + "-" +
+			pad(d.getDate()) + "T" +
+			pad(d.getHours()) + ":" +
+			pad(d.getMinutes()) + ":" +
+			pad(d.getSeconds()) +
+			sign + pad(Math.floor(offset / 60)) + ":" + pad(offset % 60);
+}
+// "
 }
 
 module.exports = MyUtils;

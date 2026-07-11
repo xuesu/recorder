@@ -10,7 +10,7 @@ To use dhtmlxScheduler in non-GPL projects (and get Pro version of the product),
 */
 Scheduler.plugin(function(scheduler){
 
-scheduler.config.occurrence_timestamp_in_utc = false;
+scheduler.config.occurrence_timestamp_in_utc = true;
 scheduler.config.recurring_workdays = [1,2,3,4,5];
 scheduler.form_blocks["recurring"] = {
 	_get_node : function(node){
@@ -1116,7 +1116,18 @@ scheduler.getRecDates = function(id, max) {
 		return [];
 	}
 
-	scheduler.repeat_date(ev, recurrings, true, ev.start_date, ev.end_date, max);
+	// when the time_series has changed time, the children time_occurence's tid(event_length) would be mismatched, and virtual event_occurences would be created
+	// we now forcefully start from the last date
+	let repeat_from = ev.start_date;
+	if (ev.rec_pattern == "day_1___"){
+		
+	for (var i = 0; i < stack.length; i++) {
+		if (stack[i].event_pid == ev.id && stack[i].start_date.valueOf() > repeat_from.valueOf()) {
+			repeat_from = Date.UTC(td.getFullYear(), td.getMonth(), td.getDate(), td.getHours(), td.getMinutes(), td.getSeconds()) new Date(stack[i].start_date.getFullYear())
+		}
+	}
+
+	scheduler.repeat_date(ev, recurrings, true, repeat_from, ev.end_date, max);
 
 	var result = [];
 	for(var i = 0; i < recurrings.length; i++){

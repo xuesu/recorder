@@ -1,5 +1,7 @@
 require("date-format-lite"); // add date format
 const MySimpleStorage = require("./mysimplestorage");
+const MyUtils = require("./utils");
+
 
 class StorageNotice extends MySimpleStorage{
 	constructor(db, params) {
@@ -66,7 +68,7 @@ class StorageNotice extends MySimpleStorage{
 	}
 	
 	async hide_notice_by_id(notice_id){
-		let res = await super.update_sql("mynotices", {"id": notice_id, "date_hide": new Date().format("YYYY-MM-DD hh:mm")});
+		let res = await super.update_sql("mynotices", {"id": notice_id, "date_hide": MyUtils.toISO8601WithOffset(new Date())});
 		return res;
 	}
 

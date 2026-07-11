@@ -1,17 +1,19 @@
 var note_format_parser = require("../../mmid_pack/mnote_parser");
+const MyUtils = require("./utils");
+
 
 function getNoteEventInstanceName(type_str, date_txt_provided) {
     if(date_txt_provided != "example"){
         if(type_str == "monthplan"){
             let start_date = new Date(Date.parse(date_txt_provided));
             start_date.setDate(1);
-            date_txt_provided = start_date.format("YYYY-MM-DD");
+            date_txt_provided = MyUtils.toISO8601WithOffset(start_date);
         }
         else if(type_str == "weekplan"){
             let start_date = new Date(Date.parse(date_txt_provided));
             let dur = start_date.getDay() - 1;
             start_date = new Date(start_date.valueOf() - dur * 24 * 3600 * 1000);
-            date_txt_provided = start_date.format("YYYY-MM-DD");
+            date_txt_provided = MyUtils.toISO8601WithOffset(start_date);
         }
     }
     return type_str + "_" + date_txt_provided;
@@ -79,13 +81,13 @@ class StorageNoteExt {
         }
 		var score = this.calcDailyCheckScore(todo_item.children);
 		return {
-			"name": getNoteEventInstanceName(type_str, start_date.format("YYYY-MM-DD")),
+			"name": getNoteEventInstanceName(type_str, MyUtils.toISO8601WithOffset(start_date)),
 			"is_finished": "true",
 			"details": details_str,
 			"score": score,
 			"etype": "FACT",
-			"start_date": start_date.format("YYYY-MM-DD hh:mm"),
-			"end_date": end_date.format("YYYY-MM-DD hh:mm"),
+			"start_date": MyUtils.toISO8601WithOffset(start_date),
+			"end_date": MyUtils.toISO8601WithOffset(end_date),
 			"event_length": undefined,
 			"event_pid": undefined,
 			"rec_pattern": "",

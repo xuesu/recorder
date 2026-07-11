@@ -51,9 +51,9 @@ class MySimpleStorage {
 			}
 			else if(param_name.startsWith("time_") || param_name.startsWith("date_")){
 				if(param_value == undefined && param_name == "time_create"){
-					param_value = new Date().format("YYYY-MM-DD hh:mm");
+					param_value = MyUtils.toISO8601WithOffset(new Date());
 				}else if(Object.prototype.toString.call(param_value) === "[object Date]"){
-					param_value = param_value.format("YYYY-MM-DD hh:mm");
+					param_value =  MyUtils.toISO8601WithOffset(param_value);
 				}
 			}
 			item[param_name] = param_value;
@@ -65,7 +65,7 @@ class MySimpleStorage {
 		var serialized = Object.assign({}, item);
 		for (let i in serialized) {
 			if (Object.prototype.toString.call(serialized[i]) === "[object Date]") {
-				serialized[i] = serialized[i].format("YYYY-MM-DD hh:mm");
+				serialized[i] = MyUtils.toISO8601WithOffset(serialized[i]);
 			} else if (typeof serialized[i] === "string") {
 				serialized[i] = xssFilters.inHTMLData(serialized[i]);
 			} else if (typeof serialized[i] === "number") {

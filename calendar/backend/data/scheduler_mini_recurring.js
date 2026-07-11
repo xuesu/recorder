@@ -2128,7 +2128,8 @@ scheduler.mtrue_copy_series_event = function(ev_series, date_provided, time_now)
 		return null;
 	}
 	var id = ev_dummy_copy.id.split("#");
-	var tid = parseInt(id[1]) * 2 - new Date(ev_dummy_copy.start_date.toUTCString().substring(0, 25)).valueOf() / 1000;
+	//force convert to utc time to avoid mismatch in different time zones.
+	var tid = parseInt(id[1]) * 2 - new Date(ev_dummy_copy.start_date.toUTCString().substring(0, 25)).valueOf() / 1000; 
 
 	ev_dummy_copy.id = null;
 	ev_dummy_copy.event_pid = ev_series.event_pid || id[0];

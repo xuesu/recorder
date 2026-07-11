@@ -3,9 +3,9 @@ require("date-format-lite"); // add date format
 var xssFilters = require('xss-filters');
 var sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
-const utils = require("./utils");
 const path = require("path");
 const scheduler = require("./scheduler_mini_recurring");
+const MyUtils = require("./utils");
 
 
 class Storage {
@@ -278,10 +278,10 @@ class Storage {
 			else item.score = parseInt(data.score);
 		}
 		if (Object.prototype.toString.call(item.start_date) === "[object Date]") {
-			item.start_date = item.start_date.format("YYYY-MM-DD hh:mm");
+			item.start_date = MyUtils.toISO8601WithOffset(item.start_date);
 		} 
 		if (Object.prototype.toString.call(item.end_date) === "[object Date]") {
-			item.end_date = item.end_date.format("YYYY-MM-DD hh:mm");
+			item.end_date = MyUtils.toISO8601WithOffset(item.end_date.format);
 		} 
 		return item;
 	}
@@ -290,7 +290,7 @@ class Storage {
 		var serialized = Object.assign({}, item);
 		for (let i in serialized) {
 			if (Object.prototype.toString.call(serialized[i]) === "[object Date]") {
-				serialized[i] = serialized[i].format("YYYY-MM-DD hh:mm");
+				serialized[i] = MyUtils.toISO8601WithOffset(serialized[i]);
 			} else if (typeof serialized[i] === "string") {
 				serialized[i] = xssFilters.inHTMLData(serialized[i]);
 			} else {
@@ -558,7 +558,7 @@ class Storage {
 	async refreshExpenses(date_txt_provided) {
 		var date_provided = new Date(Date.parse(date_txt_provided));
 		await this.updateFailedPlan(date_provided);
-		date_txt_provided = date_provided.format("YYYY-MM-DD");
+		date_txt_provided = MyUtils.toISO8601WithOffset(date_provided);
 		
 		var buf = "";
 		var fpath = path.join(process.env["OneDriveConsumer"], "Account.csv");
@@ -581,7 +581,7 @@ class Storage {
 			is_finished: "true",
 		};
 		lines.forEach((line) => {
-			var csv_cells = utils.splitLine4CSV(line);
+			var csv_cells = MyUtils.splitLine4CSV(line);
 			if (csv_cells.length < 6) {
 				if (line) console.log(line);
 			} else {
