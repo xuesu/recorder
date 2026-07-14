@@ -1,7 +1,6 @@
 const express = require("express");
 const path = require("path");
 // use body parse for parsing POST request
-const bodyParser = require("body-parser");
 const morgan = require('morgan')
 const app = express();
 const helmet = require("helmet");
@@ -25,8 +24,8 @@ module.exports = function (host = "127.0.0.1", port = "9200"){
 	app.use(morgan("tiny"));
 	
 	// scheduler sends application/x-www-form-urlencoded requests,
-	app.use(bodyParser.urlencoded({ extended: true }));
-	app.use(bodyParser.json());
+	app.use(express.urlencoded({ extended: true }));
+	app.use(express.json()); 
 	
 	// you'll need these headers if your API is deployed on a different domain than a public page
 	// in production system you could set Access-Control-Allow-Origin to your domains

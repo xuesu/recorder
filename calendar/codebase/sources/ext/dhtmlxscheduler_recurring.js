@@ -1120,10 +1120,11 @@ scheduler.getRecDates = function(id, max) {
 	// we now forcefully start from the last date
 	let repeat_from = ev.start_date;
 	if (ev.rec_pattern == "day_1___"){
-		
-	for (var i = 0; i < stack.length; i++) {
-		if (stack[i].event_pid == ev.id && stack[i].start_date.valueOf() > repeat_from.valueOf()) {
-			repeat_from = Date.UTC(td.getFullYear(), td.getMonth(), td.getDate(), td.getHours(), td.getMinutes(), td.getSeconds()) new Date(stack[i].start_date.getFullYear())
+		for (var i = 0; i < stack.length; i++) {
+			if (stack[i].event_pid == ev.id && stack[i].start_date.valueOf() > repeat_from.valueOf()) {
+				//TODO:
+				//repeat_from = Date.UTC(td.getFullYear(), td.getMonth(), td.getDate(), td.getHours(), td.getMinutes(), td.getSeconds()) new Date(stack[i].start_date.getFullYear())
+			}
 		}
 	}
 

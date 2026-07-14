@@ -5,16 +5,21 @@
   "author": "IrisXu",
   "license": "GPL-2.0",
   "scripts": {
-    "start": "cd backend && npm install && npm start"
+    "start": "cd backend && npm install && npm start",
+    "build:less": "cd codebase/sources/less && npm install && npm run build",
+    "build:js": "node codebase/build.js",
+    "build": "npm run build:less && npm run build:js"
   },
   "dependencies": {
-    "csv-parse": "^5.3.1",
-    "csv-parser": "^2.3.3",
+    "csv-parse": "^7.0.1",
     "date-format-lite": "^17.7.0",
-    "express": "^4.18.2",
-    "helmet": "^6.1.5",
-    "morgan": "^1.10.0",
-    "sqlite3": "^5.1.6",
+    "express": "^5.2.1",
+    "helmet": "^8.3.0",
+    "morgan": "^1.11.0",
+    "sqlite3": "^6.0.1",
     "xss-filters": "^1.2.7"
+  },
+  "devDependencies": {
+    "terser": "^5.31.0"
   }
 }

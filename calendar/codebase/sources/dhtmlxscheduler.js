@@ -554,7 +554,7 @@ if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1)
 	_isChrome = true;
 
 if ((navigator.userAgent.indexOf('Safari') != -1) || (navigator.userAgent.indexOf('Konqueror') != -1)) {
-	_KHTMLrv = parseFloat(navigator.userAgent.substr(navigator.userAgent.indexOf('Safari') + 7, 5));
+	_KHTMLrv = parseFloat(navigator.userAgent.slice(navigator.userAgent.indexOf('Safari') + 7, 5));
 
 	if (_KHTMLrv > 525) { //mimic FF behavior for Safari 3.1+
 		_isFF = true;
@@ -563,7 +563,7 @@ if ((navigator.userAgent.indexOf('Safari') != -1) || (navigator.userAgent.indexO
 		_isKHTML = true;
 } else if (navigator.userAgent.indexOf('Opera') != -1) {
 	_isOpera = true;
-	_OperaRv = parseFloat(navigator.userAgent.substr(navigator.userAgent.indexOf('Opera') + 6, 3));
+	_OperaRv = parseFloat(navigator.userAgent.slice(navigator.userAgent.indexOf('Opera') + 6, 3));
 }
 
 
@@ -5115,7 +5115,7 @@ scheduler.date = {
 				ndate = scheduler.date._add_days(ndate, inc * 7);
 				break;
 			case "month": ndate.setMonth(ndate.getMonth()+inc); break;
-			case "year": ndate.setYear(ndate.getFullYear()+inc); break;
+			case "year": ndate.setFullYear(ndate.getFullYear()+inc); break;
 			case "hour":
 				/*
 				 setHour(getHour() + inc) and setMinutes gives weird result when is applied on a Daylight Saving time switch
@@ -6828,7 +6828,7 @@ scheduler._load = function(url, from) {
 		return;
 	}
 
-	url += (url.indexOf("?") == -1 ? "?" : "&") + "timeshift=" + (new Date()).getTimezoneOffset();
+	// url += (url.indexOf("?") == -1 ? "?" : "&") + "timeshift=" + (new Date()).getTimezoneOffset();
 	if (this.config.prevent_cache)    url += "&uid=" + this.uid();
 	var to;
 	from = from || this._date;
@@ -7063,8 +7063,8 @@ scheduler.ical = scheduler._parsers.ical = {
 		var d = str.indexOf(":"); 
 			if (d==-1) return;
 		
-		var name = str.substr(0,d).toLowerCase();
-		var value = str.substr(d+1).replace(/\\\,/g,",").replace(/[\r\n]+$/,"");
+		var name = str.slice(0,d).toLowerCase();
+		var value = str.slice(d+1).replace(/\\\,/g,",").replace(/[\r\n]+$/,"");
 		if (name=="summary")
 			name="text";
 		else if (name=="dtstart"){
@@ -7082,13 +7082,13 @@ scheduler.ical = scheduler._parsers.ical = {
 
 		var utcMark = false;
 		if (t[1]){
-			dh=t[1].substr(0,2);
-			dm=t[1].substr(2,2);
+			dh=t[1].slice(0,2);
+			dm=t[1].slice(2,2);
 			utcMark = !!(t[1][6] == "Z");
 		}
-		var dy = t[0].substr(0,4);
-		var dn = parseInt(t[0].substr(4,2),10)-1;
-		var dd = t[0].substr(6,2);
+		var dy = t[0].slice(0,4);
+		var dn = parseInt(t[0].slice(4,2),10)-1;
+		var dd = t[0].slice(6,2);
 
 		if(scheduler.config.server_utc || utcMark){
 			return new Date(Date.UTC(dy,dn,dd,dh,dm)) ;
@@ -7699,7 +7699,7 @@ scheduler._fill_lightbox = function(id, box) {
 		s[2].innerHTML = headerContent;
 	} else {
 		var headerDate = this.templates.event_header(ev.start_date, ev.end_date, ev);
-		var headerTitle = (this.templates.event_bar_text(ev.start_date, ev.end_date, ev) || "").substr(0, 70); //IE6 fix;
+		var headerTitle = (this.templates.event_bar_text(ev.start_date, ev.end_date, ev) || "").slice(0, 70); //IE6 fix;
 
 		lightboxHeader.push(headerDate);
 		lightboxHeader.push(headerTitle);

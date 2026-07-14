@@ -20,29 +20,29 @@ function mystr2date(s) {
     var res_date = setToZeroForDate(new Date());
     var ind = 0;
     if (s.length == 6) {
-        res_date.setFullYear(2000 + parseInt(s.substr(ind, 2)));
+        res_date.setFullYear(2000 + parseInt(s.slice(ind, 2)));
         ind += 2;
     } else {
-        res_date.setFullYear(parseInt(s.substr(ind, 4)));
+        res_date.setFullYear(parseInt(s.slice(ind, 4)));
         ind += 4;
     }
-    res_date.setMonth(parseInt(s.substr(ind, 2)) - 1);
+    res_date.setMonth(parseInt(s.slice(ind, 2)) - 1);
     ind += 2;
-    res_date.setDate(parseInt(s.substr(ind, 2)));
+    res_date.setDate(parseInt(s.slice(ind, 2)));
     ind += 2;
     if (ind < s.length) {
-        res_date.setHours(parseInt(s.substr(ind, 2)));
+        res_date.setHours(parseInt(s.slice(ind, 2)));
         ind += 2;
     }
     if (ind < s.length) {
-        res_date.setMinutes(parseInt(s.substr(ind, 2)));
+        res_date.setMinutes(parseInt(s.slice(ind, 2)));
         ind += 2;
     }
     return res_date;
 }
 
 function mydate2str(dt) {
-    return dt.toISOString().substr(0, 10) + " " + dt.toISOString().substr(11, 5);
+    return dt.toISOString().slice(0, 10) + " " + dt.toISOString().slice(11, 5);
 }
 
 function addTimeTo(start_time, add_year=0, add_month=0, add_day=0, add_hour=0, add_minute=0){
@@ -70,7 +70,7 @@ function mystr2time_dur(s){
     var res = {};
     if(s.startsWith("B")){
         res.begin_from_base = true;
-        s = s.substr(1);
+        s = s.slice(1);
     }
     var time_ele_strs = ["Y", "Month", "D", "H", "Min"];
     for(var i = 0;i < time_ele_strs.length;i += 1){
@@ -85,7 +85,7 @@ function mystr2time_dur(s){
             }
             if(ok){
                 res.ele = time_ele_str;
-                res.value = parseInt(s.substr(time_ele_str.length));
+                res.value = parseInt(s.slice(time_ele_str.length));
                 return res;
             }
         }
@@ -325,7 +325,7 @@ function parse_todo_line(line_str, treenode_stk, treeinfos, baseday=null){
             txt_start_ind = line_str.indexOf(":") + 1;
         }
     }
-    item.text = line_str.substr(txt_start_ind).trim();
+    item.text = line_str.slice(txt_start_ind).trim();
     return item;
 }
 
@@ -404,7 +404,7 @@ function refix_todo_format(txt){
                         tree_level = treenode_stk.length;
                     }
                 }
-                lines[i] = "    ".repeat(tree_level) + line.substr(line.indexOf("-"))
+                lines[i] = "    ".repeat(tree_level) + line.slice(line.indexOf("-"))
             }
         }
     }

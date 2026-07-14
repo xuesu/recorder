@@ -29,7 +29,7 @@ scheduler.data_attributes=function(){
 	for (var a in all_events){
 		var ev = all_events[a];
 		for (var name in ev)
-			if (name.substr(0,1) !="_")
+			if (name.slice(0,1) !="_")
 				attrs.push([name,((name == "start_date" || name == "end_date")?format:null)]);
 		break;
 	}

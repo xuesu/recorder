@@ -531,7 +531,7 @@ function getDateTxtProvidedFromNotesTitle(){
         alert("unexcepted note title for mode" + noteExtMode);
         return;
     }
-    date_txt_provided = title.substr(noteExtMode.length + 1);
+    date_txt_provided = title.slice(noteExtMode.length + 1);
     return date_txt_provided;
 }
 
@@ -845,7 +845,7 @@ function createNotice() {
             notice_date_show = pres.date_show;
             notice_date_hide = pres.date_hide;
             notice_level = pres.level;
-            notice_txt_provided = notice_txt_provided.substr(colon_pos + 1).trim();
+            notice_txt_provided = notice_txt_provided.slice(colon_pos + 1).trim();
         }
     }
     if (notice_txt_provided.length == 0) {

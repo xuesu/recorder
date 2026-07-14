@@ -18,13 +18,13 @@ function callMethod (method) {
 function getNoteType(url, remove_sec_num){
 	possible_type_str = url;
 	while(possible_type_str.endsWith("/")){
-		possible_type_str = possible_type_str.substr(0, possible_type_str.length - 1);
+		possible_type_str = possible_type_str.slice(0, possible_type_str.length - 1);
 	}
 	while(possible_type_str.lastIndexOf("/") > 0 && (remove_sec_num > 0 || possible_type_str.startsWith("?", possible_type_str.lastIndexOf("/") + 1))){
-		possible_type_str = possible_type_str.substr(0, possible_type_str.lastIndexOf("/"));
+		possible_type_str = possible_type_str.slice(0, possible_type_str.lastIndexOf("/"));
 		remove_sec_num -= 1;
 	}
-	possible_type_str = possible_type_str.substr(possible_type_str.lastIndexOf("/") + 1).toLowerCase();
+	possible_type_str = possible_type_str.slice(possible_type_str.lastIndexOf("/") + 1).toLowerCase();
 	if(possible_type_str=="notes" || possible_type_str == "note" || possible_type_str == "note_titles" || possible_type_str == "notes_titles")return "note";
 	if(possible_type_str=="notices" || possible_type_str == "notice")return "notice";
 	if(possible_type_str=="dailycheck")return "dailycheck";
@@ -36,13 +36,13 @@ function getNoteType(url, remove_sec_num){
 function getMemQuizTableName(url, remove_sec_num){
 	possible_type_str = url;
 	while(possible_type_str.endsWith("/")){
-		possible_type_str = possible_type_str.substr(0, possible_type_str.length - 1);
+		possible_type_str = possible_type_str.slice(0, possible_type_str.length - 1);
 	}
 	while(remove_sec_num > 0 || (possible_type_str.indexOf("/") != -1 && possible_type_str[possible_type_str.lastIndexOf("/") + 1] == '?')){
-		possible_type_str = possible_type_str.substr(0, possible_type_str.lastIndexOf("/"));
+		possible_type_str = possible_type_str.slice(0, possible_type_str.lastIndexOf("/"));
 		remove_sec_num -= 1;
 	}
-	possible_type_str = possible_type_str.substr(possible_type_str.lastIndexOf("/") + 1).toLowerCase();
+	possible_type_str = possible_type_str.slice(possible_type_str.lastIndexOf("/") + 1).toLowerCase();
 	if(possible_type_str=="mementry" || possible_type_str == "mementries")return "mementries";
 	if(possible_type_str=="memgroup" || possible_type_str == "memgroups")return "memgroups";
 	if(possible_type_str=="membook" || possible_type_str == "membooks")return "membooks";

@@ -33,7 +33,7 @@ scheduler.attachEvent("onClick", function(id){
 	}
 })();
 
-scheduler.templates.quick_info_title = function(start, end, ev){ return ev.text.substr(0,50); };
+scheduler.templates.quick_info_title = function(start, end, ev){ return ev.text.slice(0,50); };
 scheduler.templates.quick_info_content = function(start, end, ev){ return ev.details || ev.text; };
 scheduler.templates.quick_info_date = function(start, end, ev){
 	if (scheduler.isOneDayEvent(ev) && scheduler.config.rtl){

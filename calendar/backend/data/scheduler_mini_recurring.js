@@ -851,7 +851,7 @@ scheduler.date = {
 				ndate = scheduler.date._add_days(ndate, inc * 7);
 				break;
 			case "month": ndate.setMonth(ndate.getMonth()+inc); break;
-			case "year": ndate.setYear(ndate.getFullYear()+inc); break;
+			case "year": ndate.setFullYear(ndate.getFullYear()+inc); break;
 			case "hour":
 				/*
 				 setHour(getHour() + inc) and setMinutes gives weird result when is applied on a Daylight Saving time switch

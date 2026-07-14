@@ -20,8 +20,8 @@
   "license": "DHTMLX Enterprise License",
   "homepage": "https://dhtmlx.com",
   "dependencies": {
-    "less": "^3.0.4",
-    "npm-watch": "^0.3.0"
+    "less": "^4.6.7",
+    "npm-watch": "^0.13.0"
   },
   "devDependencies": {}
 }

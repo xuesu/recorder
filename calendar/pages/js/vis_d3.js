@@ -98,7 +98,7 @@ function draw_collapse_tree(max_deep, data, margin = {
 		} else {
 			d._color0 = '#6395F2';
 		}
-		d.name = d.data.text.substr(0, 20) + "\n" + parseFloat(d.data.process).toFixed(2) + "%";
+		d.name = d.data.text.slice(0, 20) + "\n" + parseFloat(d.data.process).toFixed(2) + "%";
 	});
 
 

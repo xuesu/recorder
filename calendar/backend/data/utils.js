@@ -17,7 +17,7 @@ class MyUtils{
 			var len = end_ind - start_ind;
 			if(len < 0)continue;
 			else if(len == 0)ans.push("");
-			else ans.push(line.substr(start_ind, len).trim());
+			else ans.push(line.slice(start_ind, len).trim());
 		}
 		return ans;
 	};
