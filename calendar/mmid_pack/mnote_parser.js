@@ -20,29 +20,29 @@ function mystr2date(s) {
     var res_date = setToZeroForDate(new Date());
     var ind = 0;
     if (s.length == 6) {
-        res_date.setFullYear(2000 + parseInt(s.slice(ind, 2)));
+        res_date.setFullYear(2000 + parseInt(s.slice(ind, ind + 2)));
         ind += 2;
     } else {
-        res_date.setFullYear(parseInt(s.slice(ind, 4)));
+        res_date.setFullYear(parseInt(s.slice(ind, ind + 4)));
         ind += 4;
     }
-    res_date.setMonth(parseInt(s.slice(ind, 2)) - 1);
+    res_date.setMonth(parseInt(s.slice(ind, ind + 2)) - 1);
     ind += 2;
-    res_date.setDate(parseInt(s.slice(ind, 2)));
+    res_date.setDate(parseInt(s.slice(ind, ind + 2)));
     ind += 2;
     if (ind < s.length) {
-        res_date.setHours(parseInt(s.slice(ind, 2)));
+        res_date.setHours(parseInt(s.slice(ind, ind + 2)));
         ind += 2;
     }
     if (ind < s.length) {
-        res_date.setMinutes(parseInt(s.slice(ind, 2)));
+        res_date.setMinutes(parseInt(s.slice(ind, ind + 2)));
         ind += 2;
     }
     return res_date;
 }
 
 function mydate2str(dt) {
-    return dt.toISOString().slice(0, 10) + " " + dt.toISOString().slice(11, 5);
+    return dt.toISOString().slice(0, 10) + " " + dt.toISOString().slice(11, 16);
 }
 
 function addTimeTo(start_time, add_year=0, add_month=0, add_day=0, add_hour=0, add_minute=0){

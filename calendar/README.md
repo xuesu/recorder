@@ -73,7 +73,19 @@ RFC 5545 is the IETF standard that defines the iCalendar data format — the for
 - Zoned time — a wall-clock reading plus an explicit IANA timezone (e.g. America/New_York). This represents a real moment: "call with someone at 3pm their time" or anything tied to an external commitment. This is the only case where you actually need timezone math, DST handling, etc.
 - Absolute instant (true UTC) — a fixed point in universal time, timezone-agnostic by nature. Useful for things like "exactly when did this FACT get logged" if you ever want elapsed-time analytics across your own travel.
 
+#### My defs
+- Local time: time with the local server timezone offset. 
+    - localTime.getTime() - localTime.getTimezoneOffset() * 60 * 1000 == absoluteTime.getTime()
+        - where absoluteTime = date.UTC(localTime.getFullYear(), localTime.getMonth(), localTime.getDate(), localTime.getHours(), localTime.getMinutes(), localTime.getSeconds())
+- Absolute time: 
+    - timestamp == utc time stamp(without any timezone offset)
+
 ## mynotes
+
+### StorageNoteExt
+- Directly using mynotes to store data, but having special rules and prefixes like dailycheck, weekplan, monthplan...
+- Supported via StorageNoteExt
+- Right now we only support FloatingTime
 
 ## mynotices
 

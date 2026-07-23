@@ -554,7 +554,7 @@ if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1)
 	_isChrome = true;
 
 if ((navigator.userAgent.indexOf('Safari') != -1) || (navigator.userAgent.indexOf('Konqueror') != -1)) {
-	_KHTMLrv = parseFloat(navigator.userAgent.slice(navigator.userAgent.indexOf('Safari') + 7, 5));
+	_KHTMLrv = parseFloat(navigator.userAgent.slice(navigator.userAgent.indexOf('Safari') + 7, navigator.userAgent.indexOf('Safari') + 12));
 
 	if (_KHTMLrv > 525) { //mimic FF behavior for Safari 3.1+
 		_isFF = true;
@@ -563,7 +563,7 @@ if ((navigator.userAgent.indexOf('Safari') != -1) || (navigator.userAgent.indexO
 		_isKHTML = true;
 } else if (navigator.userAgent.indexOf('Opera') != -1) {
 	_isOpera = true;
-	_OperaRv = parseFloat(navigator.userAgent.slice(navigator.userAgent.indexOf('Opera') + 6, 3));
+	_OperaRv = parseFloat(navigator.userAgent.slice(navigator.userAgent.indexOf('Opera') + 6, navigator.userAgent.indexOf('Opera') + 9));
 }
 
 
@@ -7083,12 +7083,12 @@ scheduler.ical = scheduler._parsers.ical = {
 		var utcMark = false;
 		if (t[1]){
 			dh=t[1].slice(0,2);
-			dm=t[1].slice(2,2);
+			dm=t[1].slice(2,4);
 			utcMark = !!(t[1][6] == "Z");
 		}
 		var dy = t[0].slice(0,4);
-		var dn = parseInt(t[0].slice(4,2),10)-1;
-		var dd = t[0].slice(6,2);
+		var dn = parseInt(t[0].slice(4,6),10)-1;
+		var dd = t[0].slice(6,8);
 
 		if(scheduler.config.server_utc || utcMark){
 			return new Date(Date.UTC(dy,dn,dd,dh,dm)) ;

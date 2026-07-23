@@ -8,5 +8,5 @@ To use dhtmlxScheduler in non-GPL projects (and get Pro version of the product),
 (c) XB Software Ltd.
 
 */
-Scheduler.plugin(function(e){!function(){function t(e){var t=function(){};return t.prototype=e,t}var a=e._load;e._load=function(e,n){if("object"==typeof(e=e||this._load_url))for(var i=t(this._loaded),r=0;r<e.length;r++)this._loaded=new i,a.call(this,e[r],n);else a.apply(this,arguments)}}()});
-//# sourceMappingURL=../sources/ext/dhtmlxscheduler_multisource.js.map
+Scheduler.plugin(function(t){var o;o=t._load,t._load=function(t,l){if("object"==typeof(t=t||this._load_url))for(var e=function(t){var o=function(){};return o.prototype=t,o}(this._loaded),n=0;n<t.length;n++)this._loaded=new e,o.call(this,t[n],l);else o.apply(this,arguments)}});
+//# sourceMappingURL=sources/ext/dhtmlxscheduler_multisource.js.map

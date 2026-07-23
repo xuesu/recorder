@@ -22,14 +22,14 @@ class StorageNote extends MySimpleStorage{
 		params);
 	}
 	
-	async insert(table_name, data) {
+	async insert(data, table_name) {
 		if(!(table_name in this.param_relations)){
 			table_name = this.alias2table_name[table_name];
 		}
 		if(data["date_create"] == undefined || Object.prototype.toString.call(data["date_create"]) != "[object Date]"){
 			data["date_create"] = new Date();
 		}
-		return await super.insert(table_name, data);
+		return await super.insert(data, table_name);
 	}
 
 	query_all_notes_by_title_sql(title, is_pinned){

@@ -5,13 +5,13 @@ var sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
 const path = require("path");
 const scheduler = require("./scheduler_mini_recurring");
+const MySimpleStorage = require("./mysimplestorage");
 const MyUtils = require("./utils");
 
 
-class Storage {
+class EventsStorage extends MySimpleStorage {
 	constructor(db, collection, params) {
-		this._db = db;
-		this._db.run(`
+		super(db, `
 		CREATE TABLE IF NOT EXISTS "myevents" (
 			"id"	INTEGER PRIMARY KEY AUTOINCREMENT,
 			"name"	TEXT NOT NULL,
@@ -25,8 +25,13 @@ class Storage {
 			"event_pid"	INTEGER,
 			"rec_pattern"	TEXT,
 			"rec_type"	TEXT
-		);`);
-		this._params = params || {};
+		);`,
+			{
+				"myevents": ["id", "name", "details", "is_finished", "score", "start_date", "end_date", "etype", "event_length", "event_pid", "rec_pattern", "rec_type"],
+			},
+			{
+			},
+			params);
 		if (collection) {
 			collection.forEach(item => {
 				this.insert(item);
@@ -34,173 +39,49 @@ class Storage {
 		}
 	}
 
-	insert_sql(item) {
-		return new Promise((resolve, reject) => this._db.run(
-			`INSERT INTO myevents (name, details, is_finished, etype, score, start_date, end_date, event_length, event_pid, rec_pattern, rec_type)
-			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			[item.name, item.details, item.is_finished, item.etype, item.score, item.start_date, item.end_date,
-			item.event_length, item.event_pid, item.rec_pattern, item.rec_type],
-			function (err) {
-				if (err && err != null) {
-					console.log('Error running insert_sql');
-					console.log('Error: ');
-					console.error(err.message);
-					console.error(err.stack);
-					reject(err)
-				} else {
-					item.id = this.lastID;
-					resolve(item)
-				}
-			}
-		))
+	_insert_sql(item){
+		// console.log("storagelocal.js: _update_sql", item);
+		return super._insert_sql(item, "myevents");
 	}
 
-	update_sql(item) {
+	_update_sql(item) {
+		console.log("storagelocal.js: _update_sql", item);
 		if (typeof item.score != "number") {
 			if (item.score == undefined || item.score == "") item.score = 0;
-			item.score = parseInt(item.score);
+			item.score = parseInt(item.score);//or throw Error directly?
 		}
-
-		return new Promise((resolve, reject) => this._db.run( 
-			`UPDATE myevents
-			SET name = ?,
-			details = ?,
-			is_finished = ?,
-			etype = ?,
-			score = ?,
-			start_date = ?,
-			end_date = ?, 
-			event_length = ?, 
-			event_pid = ?, 
-			rec_pattern = ?, 
-			rec_type = ?
-			WHERE id = ?`,
-			[item.name, item.details, item.is_finished, item.etype, item.score, item.start_date, item.end_date,
-			item.event_length, item.event_pid, item.rec_pattern, item.rec_type, item.id],
-			(err) => {
-				if (err) {
-					console.log('Error running update_sql');
-					console.error(err.message);
-					console.error(err.stack);
-					reject(err)
-				} else {
-					resolve(item)
-				}
-			}
-		))
+		return super._update_sql(item, "myevents");
 	}
 
-	
-	update_details_sql(eid, details) {
-		return new Promise((resolve, reject) => this._db.run( 
-			`UPDATE myevents
-			SET details = ?
-			WHERE id = ?`,
-			[details, eid],
-			(err) => {
-				if (err) {
-					console.log('Error running update_sql');
-					console.error(err.message);
-					console.error(err.stack);
-					reject(err)
-				} else {
-					resolve(eid, details)
-				}
-			}
-		))
+	_update_details_sql_via_id(eid, details_str) {
+		return super._update_column_from_id_sql(eid, "details", details_str, "myevents");
 	}
 
-	delete_by_id_sql(id) {
-		return new Promise((resolve, reject) => this._db.run(
-			`DELETE FROM myevents WHERE id = ?`,
-			[id], (err) => {
-				if (err) {
-					console.log('Error running delete_by_id_sql');
-					console.error(err.message);
-					console.error(err.stack);
-					reject(err)
-				} else {
-					resolve(id)
-				}
-			}
-		))
+	_delete_by_id_sql(eid) {
+		return super._delete_by_id_sql(eid, "myevents");
 	}
 
-	delete_by_event_pid_sql(event_pid) {
-		return new Promise((resolve, reject) => this._db.run(
-			`DELETE FROM myevents WHERE event_pid = ?`,
-			[event_pid], (err) => {
-				if (err) {
-					console.log('Error running delete_by_event_pid_sql');
-					console.error(err.message);
-					console.error(err.stack);
-					reject(err)
-				} else {
-					resolve(event_pid)
-				}
-			}
-		))
+	_delete_by_event_pid_sql(event_pid) {
+		return super._delete_all_sql({"event_pid": event_pid}, "myevents");
 	}
 
-	delete_by_name_sql(name) {
-		return new Promise((resolve, reject) => this._db.run(
-			`DELETE FROM myevents WHERE name = ?`,
-			[name], (err) => {
-				if (err) {
-					console.log('Error running delete_by_name_sql');
-					console.error(err.message);
-					console.error(err.stack);
-					reject(err)
-				} else {
-					resolve(name)
-				}
-			}
-		))
+	_delete_by_name_sql(name) {
+		return super._delete_all_sql({"name": name}, "myevents");
 	}
 
-	query_name_sql(name) {
-		return new Promise((resolve, reject) => this._db.all(
-			`SELECT * FROM myevents where name=?`, [name], (err, rows) => {
-				if (err) {
-					console.log('Error running query_name_sql')
-					console.error(err)
-					reject(err)
-				} else {
-					resolve(rows);
-				}
-			}
-		))
+	_query_name_sql(name) {
+		return super._query_all_sql({"name": name}, undefined, "myevents");
 	}
 
-	query_event_occur_exists_sql(event_pid, event_length) {
-		return new Promise((resolve, reject) => this._db.all(
-			`SELECT * FROM myevents where event_pid=? and event_length=?`, [event_pid, event_length], (err, rows) => {
-				if (err) {
-					console.log('Error running query_event_occur_exists_sql')
-					console.error(err)
-					reject(err)
-				} else {
-					resolve(rows);
-				}
-			}
-		))
+	_query_event_occur_exists_sql(event_pid, event_length) {
+		return super._query_all_sql({"event_pid": event_pid, "event_length": event_length}, undefined, "myevents");
 	}
 
-	query_all_sql() {
-		return new Promise((resolve, reject) => this._db.all(
-			`SELECT * FROM myevents`, [], (err, rows) => {
-				if (err) {
-					console.log('Error running query_all')
-					console.error(err)
-					reject(err)
-				} else {
-					resolve(rows)
-				}
-			}
-		))
+	_query_all_sql() {
+		return super._query_all_sql(undefined, undefined, "myevents");
 	}
 
-	query_all_unfinished_plan_sql() {
+	_query_all_unfinished_plan_sql() {
 		return new Promise((resolve, reject) => this._db.all(
 			`SELECT * FROM myevents Where is_finished == "false" and etype == "PLAN"`, [], (err, rows) => {
 				if (err) {
@@ -214,8 +95,7 @@ class Storage {
 		))
 	}
 
-
-	query_score_now() {
+	_query_score_now() {
 		return new Promise((resolve, reject) => this._db.get(
 			`select sum(score) from myevents;`, [], (err, ans) => {
 				if (err) {
@@ -229,79 +109,45 @@ class Storage {
 		))
 	}
 
-
-	dhtml2db(data) {
-		if (typeof data.is_finished != "string") {
-			if(data.is_finished == undefined)data.is_finished = "false";
-			else data.is_finished = data.is_finished.toString();
-		}
-		var item = {
-			"id": data.id,
-			"name": data.text,
-			"details": data.details,
-			"is_finished": data.is_finished,
-			"etype": data.etype,
-			"start_date": data.start_date,
-			"end_date": data.end_date,
-			"event_length": data.event_length,
-			"event_pid": data.event_pid,
-			"rec_pattern": data.rec_pattern,
-			"rec_type": data.rec_type,
-		}
-		if (data.is_finished == "false" && data.etype == "PLAN") {
+	dhtml2db(data, _) {
+		var item = super.dhtml2db(data, "myevents");
+		console.log("storagelocal.js: dhtml2db", item);
+		if ((item.is_finished == "false" || item.is_finished == false || item.is_finished == undefined) && ["PLAN", "FAILED_PLAN"].indexOf(item.etype) != -1) {
 			item.is_finished = "false";
 		} else {
 			item.is_finished = "true";
-			if (data.etype == "FAILED_PLAN") {
-				data.etype = "PLAN";
+			if (item.etype == "FAILED_PLAN") {
+				item.etype = "PLAN";
 			}
 		}
-		if(data.etype != "PLAN" && data.etype != "FAILED_PLAN"){
-			item.event_length = item.event_pid = undefined;
+		console.log("storagelocal.js: dhtml2db2", item);
+		if (item.etype != "PLAN"){
+			item["rec_pattern"] = item["rec_type"] = undefined;
 		}
-		if(item.details == undefined)item.details = "";
-		if (!Number.isInteger(data.event_length)) {
-			if (data.event_length == undefined || data.event_length.trim().length == 0) item.event_length = undefined;
-			else item.event_length = parseInt(data.event_length);
-		}
-		if (!Number.isInteger(data.event_pid)) {
-			if (data.event_pid == undefined || data.event_pid.trim().length == 0) item.event_pid = undefined;
-			else item.event_pid = parseInt(data.event_pid);
-		}
-		if (!Number.isInteger(data.score)) {
-			if (data.score == undefined || data.score.trim().length == 0) {
-				item.score = 0;
-				if(item.name.indexOf("白噪") != -1 && item.etype == "SPENT" && item.event_pid == undefined){
-					item.score = -Math.max(0, (data.end_date.date() - data.start_date.date())/600000);
-				}
+		// if(data.etype != "PLAN" && data.etype != "FAILED_PLAN"){
+		// 	//we cleared the event_pid and event_length for FACT and SPENT
+		// 	item.event_length = item.event_pid = undefined;
+		// }
+		if (item.details == undefined) item.details = "";
+		for (let attribute_name in ["event_length", "event_pid", "score"]) {
+			if (!Number.isInteger(item[attribute_name])) {
+				if (item[attribute_name] == undefined || (typeof item[attribute_name] === "string" && item[attribute_name].trim().length == 0)) item[attribute_name] = undefined;
+				else item[attribute_name] = parseInt(item[attribute_name]);
 			}
-			else item.score = parseInt(data.score);
 		}
-		if (Object.prototype.toString.call(item.start_date) === "[object Date]") {
-			item.start_date = MyUtils.toISO8601WithOffset(item.start_date);
-		} 
-		if (Object.prototype.toString.call(item.end_date) === "[object Date]") {
-			item.end_date = MyUtils.toISO8601WithOffset(item.end_date.format);
-		} 
+		if (item.score == undefined) {
+			item.score = 0;
+			if (item.name.indexOf("白噪") != -1 && item.etype == "SPENT") {
+				item.score = -Math.max(0, (new Date(item.end_date).getTime() - new Date(item.start_date).getTime()) / 600000);
+			}
+		}
+
 		return item;
 	}
 
 	db2dhtml(item) {
-		var serialized = Object.assign({}, item);
-		for (let i in serialized) {
-			if (Object.prototype.toString.call(serialized[i]) === "[object Date]") {
-				serialized[i] = MyUtils.toISO8601WithOffset(serialized[i]);
-			} else if (typeof serialized[i] === "string") {
-				serialized[i] = xssFilters.inHTMLData(serialized[i]);
-			} else {
-				if (serialized[i] == null) serialized[i] = "";
-				else serialized[i] = serialized[i].toString();
-			}
-		}
-		serialized.text = item.name;
-		serialized.start_date = new Date(item.start_date); //recover to [object Date]
-		serialized.end_date = new Date(item.end_date);
-		serialized.is_finished = item.is_finished == "true";
+		var serialized = super.db2dhtml(item);
+		serialized.text = xssFilters.inHTMLData(item.name);
 		return serialized;
 	}
 
@@ -310,19 +156,19 @@ class Storage {
 		let selectFrom;
 		let selectTo;
 		if (params.from) {
-			selectFrom = params.from.date();
+			selectFrom = new Date(params.from);
 		}
 		if (params.to) {
-			selectTo = params.to.date();
+			selectTo = new Date(params.to);
 		}
-		return this.query_all_sql().then((rows) => {
+		return this._query_all_sql().then((rows) => {
 			const result = [];
 			for (var i = 0; i < rows.length; i++) {
 				const row = rows[i];
 				const event = this.db2dhtml(row);
-				if (selectFrom && event.end_date.date() < selectFrom) {
+				if (selectFrom && event.end_date_dateobj < selectFrom) {
 					continue;
-				} if (selectTo && event.start_date.date() > selectTo) {
+				} if (selectTo && event.start_date_dateobj > selectTo) {
 					continue;
 				} else {
 					result.push(event);
@@ -345,19 +191,24 @@ class Storage {
 			console.log('Error: ');
 			console.error(err.message);
 			console.error(err.stack);
+			return {
+				action: "error",
+				message: "Cannot getAll!"
+			}
 		});
 	}
 
 	async getStatistic(params) {
+		//TODO: add timezoneshift
 		let selectFrom;
 		let selectTo;
 		if (params.from) {
-			selectFrom = params.from.date();
+			selectFrom = new Date(params.from);
 		}
 		if (params.to) {
-			selectTo = params.to.date();
+			selectTo = new Date(params.to);
 		}
-		return this.query_all_sql().then((rows) => {
+		return this._query_all_sql().then((rows) => {
 			var scoreNow = 0;
 			var scoreToday = 0;
 			var spentToday = 0;
@@ -375,31 +226,28 @@ class Storage {
 			date_yesterday.setMilliseconds(0);
 			var date_tomorrow = new Date(date_yesterday.valueOf() + 24 * 3600 * 1000);
 			for (var i = 0; i < rows.length; i++) {
-				const row = rows[i];
-				row.is_finished = row.is_finished == "true";
-				const start_date = row.start_date.date();
-				const end_date = row.end_date.date();
-				var is_planned = row.etype == "PLAN" || row.etype == "FAILED_PLAN";
-				if (selectFrom && end_date < selectFrom) {
+				const event = this.db2dhtml(rows[i]);
+				var is_planned = event.etype == "PLAN" || event.etype == "FAILED_PLAN";
+				if (selectFrom && event.end_date_dateobj < selectFrom) {
 					continue;
-				} if (selectTo && start_date > selectTo) {
+				} if (selectTo && event.start_date_dateobj > selectTo) {
 					continue;
 				}
-				if (is_planned && end_date <= date_now) {
-					if (!row.is_finished || row.etype == "FAILED_PLAN") {
+				if (is_planned && event.end_date_dateobj <= date_now) {
+					if (event.is_finished != "true" || event.etype == "FAILED_PLAN") {
 						failedAll += 1;
-						if (end_date > date_yesterday && end_date < date_tomorrow) {
+						if (event.end_date_dateobj > date_yesterday && event.end_date_dateobj < date_tomorrow) {
 							failedToday += 1;
 						}
 					}
 				}
-				if (row.is_finished) {
+				if (event.is_finished == "true") {
 					if (is_planned) { successAll = successAll + 1; }
-					scoreNow += row.score;
-					if (end_date > date_yesterday && end_date < date_tomorrow) {
-						scoreToday += row.score;
-						if (row.score < 0) spentToday += row.score;
-						else earnedToday += row.score;
+					scoreNow += event.score;
+					if (event.end_date_dateobj > date_yesterday && event.end_date_dateobj < date_tomorrow) {
+						scoreToday += event.score;
+						if (event.score < 0) spentToday += event.score;
+						else earnedToday += event.score;
 						if (is_planned) {
 							successToday += 1;
 						}
@@ -421,29 +269,30 @@ class Storage {
 			console.error(err.message);
 			console.error(err.stack);
 			return {
-				action: "error"
+				action: "error",
+				message: "Cannot getStatistic!"
 			}
 		});
 
 	}
 
-	async insert_dummy_copy(data){
-		if(data.id != undefined && data.id.indexOf("#") != -1){
+	async insert_dummy_copy(data) {
+		if (data.id != undefined && data.id.indexOf("#") != -1) {
 			scheduler.recover_ev_from_dummy_copy(data);
 		}
 		var this2 = this;
-		return await this.query_event_occur_exists_sql(data.event_pid, data.event_length).then(
-			rows=>{
-				if(rows.length > 0){
+		return await this._query_event_occur_exists_sql(data.event_pid, data.event_length).then(
+			rows => {
+				if (rows.length > 0) {
 					return {
 						action: "query",
 						tid: rows[0].id.toString(),
 						item: rows[0],
 					};
-				}else{
+				} else {
 					var item = this2.dhtml2db(data);
-					return this2.insert_sql(item).then(
-						(item)=> {
+					return this2._insert_sql(item).then(
+						(item) => {
 							return {
 								action: "inserted",
 								tid: item.id.toString(),
@@ -458,42 +307,27 @@ class Storage {
 
 	// create new event
 	async insert(data) {
-		if(data.id != undefined && String(data.id).indexOf("#") != -1){
+		console.log("children storage_local.insert");
+		if (data.id != undefined && String(data.id).indexOf("#") != -1) {
 			return this.insert_dummy_copy(data);
 		}
-		var item = this.dhtml2db(data);
-		var this2 = this;
-		return this.insert_sql(item).then(
-			function (item) {
-				return {
-					action: "inserted",
-					tid: item.id.toString(),
-					item: this2.db2dhtml(item),
-				}
-			}).catch((err) => {
-				console.log('Error: ');
-				console.error(err.message);
-				console.error(err.stack);
-				return {
-					action: "error"
-				}
-			});
+		return super.insert(data, "myevents");
 	}
-	
-
 
 	// update event
 	async update(id, data) {
+		console.log("children storage_local.update");
 		data.id = parseInt(id);
-		data.name = data.text;
+		data.name = xssFilters.inHTMLData(data.text);
 		var item = this.dhtml2db(data);
-		var this2= this;
-		return this.update_sql(item).catch((err) => {
+		var this2 = this;
+		return this._update_sql(item).catch((err) => {
 			console.log('Error: ');
 			console.error(err.message);
 			console.error(err.stack);
 			return {
 				action: "error",
+				message: "cannot update"
 			}
 		}).then((_) => {
 			return {
@@ -514,18 +348,17 @@ class Storage {
 		scheduler._max_date = date_a_day_after;
 		var time_now = Date.now();
 		var promises = [];
-		return this.query_all_unfinished_plan_sql().then((rows) => {
+		return this._query_all_unfinished_plan_sql().then((rows) => {
 			for (var i = 0; i < rows.length; i++) {
-				const row = rows[i];
-				const event = this.db2dhtml(row);
-				if (event.end_date.valueOf() < time_now) {
+				const event = this.db2dhtml(rows[i]);
+				if (event.end_date_dateobj < time_now) {
 					event.etype = "FAILED_PLAN";
 					promises.push(this.update(event.id, event));
-				} else if(event.rec_type != undefined && event.rec_type.length > 0 && event.rec_type != 'none'){
+				} else if (event.rec_type != undefined && event.rec_type.length > 0 && event.rec_type != 'none') {
 					const event_occur = scheduler.mtrue_copy_series_event(event, date_provided, time_now);
-					if(event_occur != null){
-						promises.push(this.query_event_occur_exists_sql(event_occur.event_pid, event_occur.event_length).then((rows)=>{
-							if(rows.length == 0){
+					if (event_occur != null) {
+						promises.push(this._query_event_occur_exists_sql(event_occur.event_pid, event_occur.event_length).then((rows) => {
+							if (rows.length == 0) {
 								event_occur.etype = "FAILED_PLAN";
 								this.insert(event_occur);
 							}
@@ -540,41 +373,45 @@ class Storage {
 			console.log('Error: ');
 			console.error(err.message);
 			console.error(err.stack);
+			return {
+				action: "error",
+				message: "cannot updateFailedPlan"
+			}
 		});
 	}
 
 	// delete event
 	async delete(id) {
-		await this.delete_by_id_sql(parseInt(id)).then((id) => this.delete_by_event_pid_sql(id));
+		await this._delete_by_id_sql(parseInt(id)).then((id) => this._delete_by_event_pid_sql(id));
 		return {
 			action: "deleted"
 		}
 	}
 
-	getExpensesName(date_txt_provided) {
+	static getExpensesName(date_txt_provided) {
 		return "EXPENSES_" + date_txt_provided;
 	}
 
 	async refreshExpenses(date_txt_provided) {
 		var date_provided = new Date(Date.parse(date_txt_provided));
 		await this.updateFailedPlan(date_provided);
-		date_txt_provided = MyUtils.toISO8601WithOffset(date_provided);
-		
+		date_txt_provided = MyUtils.localDateToFloatingTime(date_provided, false);
+
 		var buf = "";
 		var fpath = path.join(process.env["OneDriveConsumer"], "Account.csv");
-		if(fs.existsSync(fpath)){
+		if (fs.existsSync(fpath)) {
 			buf = fs.readFileSync(fpath, { encoding: 'utf8' });
 		} else {
 			return {
 				action: "error",
-				msg: "cannot find account.csv"
+				message: "cannot find account.csv"
 			}
 		}
 		const lines = buf.split(/\r?\n/);
 		var item = {
 			score: 0,
 			details: "",
-			name: this.getExpensesName(date_txt_provided),
+			name: EventsStorage.getExpensesName(date_txt_provided),
 			start_date: date_txt_provided + " 23:50",
 			end_date: date_txt_provided + " 23:55",
 			etype: "SPENT",
@@ -603,19 +440,27 @@ class Storage {
 			}
 		});
 		item.score = Math.round(item.score);
-		let rows = await this.query_name_sql(item.name);
+		let rows = await this._query_name_sql(item.name);
 		if (rows.length == 0) {
-			await this.insert_sql(item).catch((err) => {
+			await this._insert_sql(item).catch((err) => {
 				console.log('Error: ');
 				console.error(err.message);
 				console.error(err.stack);
+				return {
+					action: "error",
+					message: "cannot insert in refreshExpenses"
+				}
 			});
 		} else {
 			item.id = rows[0].id;
-			await this.update_sql(item).catch((err) => {
+			await this._update_sql(item).catch((err) => {
 				console.log('Error: ');
 				console.error(err.message);
 				console.error(err.stack);
+				return {
+					action: "error",
+					message: "cannot update in refreshExpenses"
+				}
 			});
 		}
 		return {
@@ -623,14 +468,15 @@ class Storage {
 		}
 	}
 
-	async updateDetails(eid, details_str){
+	async updateDetails(eid, details_str) {
 		eid = parseInt(eid);
-		return this.update_details_sql(eid, details_str).catch((err) => {
+		return this._update_details_sql_via_id(eid, details_str).catch((err) => {
 			console.log('Error: ');
 			console.error(err.message);
 			console.error(err.stack);
 			return {
 				action: "error",
+				message: "cannot updateDetails"
 			}
 		}).then((eid, details_str) => {
 			return {
@@ -641,4 +487,4 @@ class Storage {
 	}
 }
 
-module.exports = Storage;
+module.exports = EventsStorage;
