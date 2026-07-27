@@ -8,7 +8,8 @@
     "start": "cd backend && npm install && npm start",
     "build:less": "cd codebase/sources/less && npm install && npm run build",
     "build:js": "node codebase/build.js",
-    "build": "npm run build:less && npm run build:js"
+    "build": "npm run build:less && npm run build:js",
+    "test": "node --test tests"
   },
   "dependencies": {
     "csv-parse": "^7.0.1",
