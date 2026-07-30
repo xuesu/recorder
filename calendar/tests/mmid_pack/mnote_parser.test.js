@@ -94,7 +94,7 @@ test("addTimeTo does not mutate input", () => {
 
 test("refix_todo_format handles misaligned child indentation", () => {
 	const txt = "## TODO\n- [ ] 1: A\n        - [ ] 2: B\n";
-	const fixed = refix_todo_format(txt);
+	const fixed = parser.refix_todo_format(txt);
 	assert.ok(fixed.indexOf("- [ ] 1: A") !== -1);
 	assert.ok(fixed.indexOf("- [ ] 2: B") !== -1);
 });

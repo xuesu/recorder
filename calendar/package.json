@@ -9,7 +9,7 @@
     "build:less": "cd codebase/sources/less && npm install && npm run build",
     "build:js": "node codebase/build.js",
     "build": "npm run build:less && npm run build:js",
-    "test": "node --test tests"
+    "test": "node --test tests/**/*.test.js"
   },
   "dependencies": {
     "csv-parse": "^7.0.1",

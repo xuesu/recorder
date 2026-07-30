@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert");
-const StorageMemEntry = require("../../backend/memquiz/storage_mementry");
 const { createDb } = require("../helpers/db");
+const StorageMemEntry = require("../../backend/memquiz/storage_mementry");
 
 async function setup() {
 	const db = createDb();

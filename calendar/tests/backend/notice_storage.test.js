@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert");
-const StorageNotice = require("../../backend/data/storage_notice_local");
 const { createDb } = require("../helpers/db");
+const StorageNotice = require("../../backend/data/storage_notice_local");
 
 function setup() {
 	const db = createDb();
@@ -18,14 +18,14 @@ function getTableNames(db) {
 }
 
 test("StorageNotice auto-creates mynotices table on an empty db", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const tables = await getTableNames(db);
 	assert.ok(tables.indexOf("mynotices") !== -1, `expected mynotices auto-created, got [${tables.join(", ")}]`);
 	db.close();
 });
 
 test("StorageNotice insert -> getAll (Create + Read)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const res = await storage.insert(
 		{ date_show: "2024-01-01 00:00", date_hide: "2024-12-31 23:59", text: "Notice!", info_level: 1 },
 		"notice"
@@ -42,7 +42,7 @@ test("StorageNotice insert -> getAll (Create + Read)", async () => {
 });
 
 test("StorageNotice update (Update)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert(
 		{ date_show: "2024-01-01 00:00", date_hide: "2024-12-31 23:59", text: "Old" },
 		"notice"
@@ -59,7 +59,7 @@ test("StorageNotice update (Update)", async () => {
 });
 
 test("StorageNotice delete (Delete)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert(
 		{ date_show: "2024-01-01 00:00", date_hide: "2024-12-31 23:59", text: "Bye" },
 		"notice"
@@ -72,7 +72,7 @@ test("StorageNotice delete (Delete)", async () => {
 });
 
 test("StorageNotice getOneByID", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert(
 		{ date_show: "2024-01-01 00:00", date_hide: "2024-12-31 23:59", text: "Find" },
 		"notice"
@@ -86,7 +86,7 @@ test("StorageNotice getOneByID", async () => {
 });
 
 test("StorageNotice getAll postprocess date_show=afternow filter", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const past = new Date(Date.now() - 2 * 24 * 3600 * 1000);
 	const future = new Date(Date.now() + 2 * 24 * 3600 * 1000);
 	const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} 00:00`;

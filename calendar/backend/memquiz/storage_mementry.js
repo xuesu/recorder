@@ -1,8 +1,6 @@
 require("date-format-lite"); // add date format
-const fs = require('fs');
 const csvparse = require('csv-parse');
 const MySimpleStorage = require("../data/mysimplestorage");
-
 
 class StorageMemEntry extends MySimpleStorage {
     constructor(db, params) {
@@ -60,8 +58,8 @@ class StorageMemEntry extends MySimpleStorage {
             {
                 "mementries": ["id", "name", "text", "lecture_id", "group_ids", "is_learning", "time_create", "last_err_time", "leading_id", "test_histogram", "difficulty", "extra"],
                 "memgroups": ["id", "name", "text", "time_create", "extra"],
-                "membooks": ["id", "name", "text", "time_create", "group_ids", "extra"],
-                "memlectures": ["id", "book_id", "name", "text", "time_create", "group_ids", "extra"],
+                "membooks": ["id", "name", "time_create", "group_ids", "extra"],
+                "memlectures": ["id", "book_id", "name", "time_create", "group_ids", "extra"],
             },
             {
                 "mementry": "mementries",
@@ -117,7 +115,7 @@ class StorageMemEntry extends MySimpleStorage {
         if (!(table_name in this.param_relations)) {
             table_name = this.alias2table_name[table_name];
         }
-        if ("time_create" in this.param_relations[table_name]) data.time_create = new Date();
+        if (this.param_relations[table_name].indexOf("time_create") != -1) data.time_create = new Date();
         var item = this.dhtml2db(data, table_name);
         return super._insert_sql(item, table_name).then(
             function (item) {

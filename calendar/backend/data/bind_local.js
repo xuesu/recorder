@@ -1,6 +1,5 @@
 
-var sqlite3 = require('sqlite3').verbose();
-
+const sqlite3 = require('sqlite3').verbose();
 const path = require("path");
 const Storage = require("./storage_local");
 const StorageNote = require("./storage_note_local");

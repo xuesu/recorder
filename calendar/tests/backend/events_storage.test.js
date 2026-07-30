@@ -1,12 +1,16 @@
 const test = require("node:test");
 const assert = require("node:assert");
-const EventsStorage = require("../../backend/data/storage_local");
-const scheduler = require("../../backend/data/scheduler_mini_recurring");
 const { createDb } = require("../helpers/db");
+const scheduler = require("../../backend/data/scheduler_mini_recurring");
+const EventsStorage = require("../../backend/data/storage_local");
+const MyUtils = require("../../backend/data/utils");
 
-function setup() {
+async function setup() {
 	const db = createDb();
 	const storage = new EventsStorage(db);
+	await MyUtils.mywaitpromise(0.5);
+	await MyUtils.mywaitpromise(0.5);
+	await MyUtils.mywaitpromise(0.5);
 	return { db, storage };
 }
 
@@ -19,14 +23,14 @@ function getTableNames(db) {
 }
 
 test("EventsStorage auto-creates myevents table on an empty db", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const tables = await getTableNames(db);
 	assert.ok(tables.indexOf("myevents") !== -1, `expected myevents auto-created, got [${tables.join(", ")}]`);
 	db.close();
 });
 
 test("EventsStorage insert -> getAll (Create + Read)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const res = await storage.insert({
 		name: "Test Event",
 		start_date: "2024-01-01 10:00",
@@ -47,7 +51,7 @@ test("EventsStorage insert -> getAll (Create + Read)", async () => {
 });
 
 test("EventsStorage update (Update)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "Before Update",
 		start_date: "2024-01-01 10:00",
@@ -76,7 +80,7 @@ test("EventsStorage update (Update)", async () => {
 });
 
 test("EventsStorage delete (Delete)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "To Delete",
 		start_date: "2024-01-01 10:00",
@@ -95,7 +99,7 @@ test("EventsStorage delete (Delete)", async () => {
 });
 
 test("EventsStorage getOneByID", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "Find Me",
 		start_date: "2024-01-01 10:00",
@@ -112,7 +116,7 @@ test("EventsStorage getOneByID", async () => {
 });
 
 test("EventsStorage updateDetails", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "Details Target",
 		start_date: "2024-01-01 10:00",
@@ -125,7 +129,7 @@ test("EventsStorage updateDetails", async () => {
 });
 
 test("EventsStorage full CRUD cycle", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const a = await storage.insert({ name: "A", start_date: "2024-01-01 10:00", end_date: "2024-01-01 11:00", etype: "PLAN" });
 	await storage.insert({ name: "B", start_date: "2024-01-02 10:00", end_date: "2024-01-02 11:00", etype: "FACT", is_finished: true, score: 3 });
 	let all = await storage.getAll({});
@@ -143,7 +147,7 @@ test("EventsStorage full CRUD cycle", async () => {
 // ==================== ETYPE BEHAVIOR TESTS ====================
 
 test("etype PLAN preserves rec_pattern/rec_type and defaults is_finished=false", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "Recurring Plan",
 		start_date: "2024-01-01 10:00",
@@ -162,7 +166,7 @@ test("etype PLAN preserves rec_pattern/rec_type and defaults is_finished=false",
 });
 
 test("etype PLAN with is_finished=true keeps rec and is_finished=true", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "Done Plan",
 		start_date: "2024-01-01 10:00",
@@ -182,7 +186,7 @@ test("etype PLAN with is_finished=true keeps rec and is_finished=true", async ()
 });
 
 test("etype FACT forces is_finished=true and clears rec_pattern/rec_type", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "Fact",
 		start_date: "2024-01-01 10:00",
@@ -201,7 +205,7 @@ test("etype FACT forces is_finished=true and clears rec_pattern/rec_type", async
 });
 
 test("etype SPENT forces is_finished=true and clears rec_pattern/rec_type", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "Spent",
 		start_date: "2024-01-01 10:00",
@@ -221,7 +225,7 @@ test("etype SPENT forces is_finished=true and clears rec_pattern/rec_type", asyn
 });
 
 test("etype FAILED_PLAN with is_finished=true is converted to PLAN and keeps rec", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "Failed",
 		start_date: "2024-01-01 10:00",
@@ -241,7 +245,7 @@ test("etype FAILED_PLAN with is_finished=true is converted to PLAN and keeps rec
 });
 
 test("etype FAILED_PLAN with is_finished=false stays FAILED_PLAN and clears rec", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "FailedUnfinished",
 		start_date: "2024-01-01 10:00",
@@ -262,7 +266,7 @@ test("etype FAILED_PLAN with is_finished=false stays FAILED_PLAN and clears rec"
 });
 
 test("etype SPENT with 白噪 in name and no score auto-calculates negative score", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "白噪时间",
 		start_date: "2024-01-01 10:00",
@@ -277,7 +281,7 @@ test("etype SPENT with 白噪 in name and no score auto-calculates negative scor
 });
 
 test("update from PLAN to FACT clears rec_pattern/rec_type", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "PlanToFact",
 		start_date: "2024-01-01 10:00",
@@ -303,7 +307,7 @@ test("update from PLAN to FACT clears rec_pattern/rec_type", async () => {
 });
 
 test("update FACT back to PLAN restores ability to hold rec_pattern/rec_type", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "FactToPlan",
 		start_date: "2024-01-01 10:00",
@@ -333,7 +337,7 @@ test("update FACT back to PLAN restores ability to hold rec_pattern/rec_type", a
 // ==================== ISO8601 WITH OFFSET TESTS ====================
 
 test("insert with positive ISO8601 offset stores zoned format and round-trips", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "ZonedPos",
 		start_date: "2024-01-01 11:00",
@@ -359,7 +363,7 @@ test("insert with positive ISO8601 offset stores zoned format and round-trips", 
 });
 
 test("insert with negative ISO8601 offset stores zoned format and round-trips", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "ZonedNeg",
 		start_date: "2024-01-01 11:00",
@@ -380,7 +384,7 @@ test("insert with negative ISO8601 offset stores zoned format and round-trips", 
 });
 
 test("ISO8601 offset with non-zero minutes (e.g. +05:30) round-trips", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "ZonedIndia",
 		start_date: "2024-01-01 11:00",
@@ -399,7 +403,7 @@ test("ISO8601 offset with non-zero minutes (e.g. +05:30) round-trips", async () 
 });
 
 test("floating-time and ISO8601 events coexist and are distinguishable", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	await storage.insert({
 		name: "Floating",
 		start_date: "2024-01-01 10:00",
@@ -431,7 +435,7 @@ test("floating-time and ISO8601 events coexist and are distinguishable", async (
 });
 
 test("update with ISO8601 offset changes stored format to zoned", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({
 		name: "ToZone",
 		start_date: "2024-01-01 10:00",
@@ -460,7 +464,7 @@ test("update with ISO8601 offset changes stored format to zoned", async () => {
 });
 
 test("getAll from/to filtering works with ISO8601 zoned dates", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	await storage.insert({
 		name: "ZonedA",
 		start_date: "2024-01-10 10:00",
@@ -600,7 +604,7 @@ test("scheduler.mtrue_copy_series_event returns null when no occurrence in range
 // ==================== DUMMY COPY / OCCURRENCE MATERIALIALIZATION ====================
 
 test("insert with id containing '#' materializes a series occurrence (insert_dummy_copy)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const series = await storage.insert({
 		name: "SeriesRoot",
 		start_date: "2024-01-01 10:00",
@@ -635,7 +639,7 @@ test("insert with id containing '#' materializes a series occurrence (insert_dum
 });
 
 test("insert_dummy_copy is idempotent: second insert of same occurrence returns query", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const series = await storage.insert({
 		name: "SeriesRoot2",
 		start_date: "2024-01-01 10:00",
@@ -664,7 +668,7 @@ test("insert_dummy_copy is idempotent: second insert of same occurrence returns 
 });
 
 test("delete on a series also deletes its materialized occurrences (event_pid cleanup)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const series = await storage.insert({
 		name: "SeriesForDelete",
 		start_date: "2024-01-01 10:00",
@@ -693,7 +697,7 @@ test("delete on a series also deletes its materialized occurrences (event_pid cl
 // ==================== updateFailedPlan LOGIC ====================
 
 test("updateFailedPlan marks past unfinished PLAN as FAILED_PLAN", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const past = await storage.insert({
 		name: "PastPlan",
 		start_date: "2024-01-01 10:00",
@@ -708,7 +712,7 @@ test("updateFailedPlan marks past unfinished PLAN as FAILED_PLAN", async () => {
 });
 
 test("updateFailedPlan leaves future PLAN unchanged", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const future = await storage.insert({
 		name: "FuturePlan",
 		start_date: "2099-01-01 10:00",
@@ -723,7 +727,7 @@ test("updateFailedPlan leaves future PLAN unchanged", async () => {
 });
 
 test("updateFailedPlan leaves already-finished FACT untouched", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const fact = await storage.insert({
 		name: "DoneFact",
 		start_date: "2024-01-01 10:00",
@@ -743,7 +747,7 @@ test("updateFailedPlan leaves already-finished FACT untouched", async () => {
 // ==================== getStatistic with etypes ====================
 
 test("getStatistic aggregates scoreNow and failedAll across etypes", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	// finished FACT with score 10 -> counts toward scoreNow
 	await storage.insert({
 		name: "ScoredFact",

@@ -1,11 +1,15 @@
 const test = require("node:test");
 const assert = require("node:assert");
-const StorageNote = require("../../backend/data/storage_note_local");
 const { createDb } = require("../helpers/db");
+const MyUtils = require("../../backend/data/utils");
+const StorageNote = require("../../backend/data/storage_note_local");
 
-function setup() {
+async function setup() {
 	const db = createDb();
 	const storage = new StorageNote(db);
+	await MyUtils.mywaitpromise(0.5);
+	await MyUtils.mywaitpromise(0.5);
+	await MyUtils.mywaitpromise(0.5);
 	return { db, storage };
 }
 
@@ -18,14 +22,14 @@ function getTableNames(db) {
 }
 
 test("StorageNote auto-creates mynotes table on an empty db", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const tables = await getTableNames(db);
 	assert.ok(tables.indexOf("mynotes") !== -1, `expected mynotes auto-created, got [${tables.join(", ")}]`);
 	db.close();
 });
 
 test("StorageNote insert -> getAll (Create + Read)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const res = await storage.insert({ title: "My Note", content: "Hello world" }, "note");
 	assert.strictEqual(res.action, "inserted");
 	assert.ok(res.tid);
@@ -40,7 +44,7 @@ test("StorageNote insert -> getAll (Create + Read)", async () => {
 });
 
 test("StorageNote update (Update)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({ title: "Old", content: "old body" }, "note");
 	const upd = await storage.update(ins.tid, { title: "New", content: "new body" }, "note");
 	assert.strictEqual(upd.action, "updated");
@@ -52,7 +56,7 @@ test("StorageNote update (Update)", async () => {
 });
 
 test("StorageNote delete (Delete)", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({ title: "Gone", content: "bye" }, "note");
 	const del = await storage.delete(ins.tid, "note");
 	assert.strictEqual(del.action, "deleted");
@@ -62,7 +66,7 @@ test("StorageNote delete (Delete)", async () => {
 });
 
 test("StorageNote getOneByID", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	const ins = await storage.insert({ title: "Find", content: "x" }, "note");
 	const got = await storage.getOneByID(ins.tid, "note");
 	assert.strictEqual(got.action, "query");
@@ -73,7 +77,7 @@ test("StorageNote getOneByID", async () => {
 });
 
 test("StorageNote getAllNoteTitleWithIDSorted only returns pinned", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	await storage.insert({ title: "Unpinned", content: "x", pinned_level: -1 }, "note");
 	await storage.insert({ title: "PinnedA", content: "x", pinned_level: 1 }, "note");
 	await storage.insert({ title: "PinnedB", content: "x", pinned_level: 5 }, "note");
@@ -86,7 +90,7 @@ test("StorageNote getAllNoteTitleWithIDSorted only returns pinned", async () => 
 });
 
 test("StorageNote rejects title retrieval for non-note type", async () => {
-	const { db, storage } = setup();
+	const { db, storage } = await setup();
 	await assert.rejects(() => storage.getAllNoteTitleWithIDSorted("notice"));
 	db.close();
 });

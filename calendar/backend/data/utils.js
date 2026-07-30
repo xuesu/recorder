@@ -1,39 +1,39 @@
-class MyUtils{
-	static splitLine4CSV(line ,separator=",", closure_sym="\"") {
+class MyUtils {
+	static splitLine4CSV(line, separator = ",", closure_sym = "\"") {
 		let in_closure = false;
 		let inds = [-1];
-		for(var i = 0;i < line.length;i++){
-			if(line[i] == closure_sym){
+		for (var i = 0; i < line.length; i++) {
+			if (line[i] == closure_sym) {
 				in_closure = !in_closure;
-			}else if(!in_closure && line[i] == separator){
+			} else if (!in_closure && line[i] == separator) {
 				inds.push(i);
 			}
 		}
 		inds.push(line.length);
 		let ans = [];
-		for(var i = 1;i < inds.length;i++){
+		for (var i = 1; i < inds.length; i++) {
 			var start_ind = inds[i - 1] + 1;
 			var end_ind = inds[i];
 			var len = end_ind - start_ind;
-			if(len < 0)continue;
-			else if(len == 0)ans.push("");
+			if (len < 0) continue;
+			else if (len == 0) ans.push("");
 			else ans.push(line.slice(start_ind, start_ind + len).trim());
 		}
 		return ans;
 	};
 
 	static isDict(v) {
-		return typeof v==='object' && v!==null && !(v instanceof Array) && !(v instanceof Date);
+		return typeof v === 'object' && v !== null && !(v instanceof Array) && !(v instanceof Date);
 	}
 
-	static absDateToFloatingTime(abs_date, with_hour=true) {
+	static absDateToFloatingTime(abs_date, with_hour = true) {
 		var date_str = abs_date.getUTCFullYear() + "-" + String(abs_date.getUTCMonth() + 1).padStart(2, '0') + "-" + String(abs_date.getUTCDate()).padStart(2, '0');
 		if (with_hour) {
 			date_str += " " + String(abs_date.getUTCHours()).padStart(2, '0') + ":" + String(abs_date.getUTCMinutes()).padStart(2, '0');
 		}
 		return date_str;
 	}
-	
+
 	static absDateToISO8601WithOffset(abs_date, offset) {
 		const sign = offset >= 0 ? "+" : "-";
 		const pad = (n) => String(Math.abs(n)).padStart(2, "0");
@@ -60,11 +60,11 @@ class MyUtils{
 		};
 	}
 
-	static absDateFromFloatingTime(dstr){
+	static absDateFromFloatingTime(dstr) {
 		return new Date(dstr + "Z");
 	}
 
-	static localDateToFloatingTime(local_date_or_dstr, with_hour=true) {
+	static localDateToFloatingTime(local_date_or_dstr, with_hour = true) {
 		if (local_date_or_dstr == undefined) local_date_or_dstr = new Date();
 		if (typeof local_date_or_dstr === "string") local_date_or_dstr = new Date(local_date_or_dstr);
 		var date_str = local_date_or_dstr.getFullYear() + "-" + String(local_date_or_dstr.getMonth() + 1).padStart(2, '0') + "-" + String(local_date_or_dstr.getDate()).padStart(2, '0');
@@ -73,9 +73,9 @@ class MyUtils{
 		}
 		return date_str;
 	}
-	
-	static localDateToISO8601WithOffset(local_date_or_dstr, offset=null) {
-		if(offset == null){
+
+	static localDateToISO8601WithOffset(local_date_or_dstr, offset = null) {
+		if (offset == null) {
 			offset = -local_date_or_dstr.getTimezoneOffset();
 		}
 		if (typeof local_date_or_dstr == "string") local_date_or_dstr = new Date(local_date_or_dstr);
@@ -106,11 +106,21 @@ class MyUtils{
 		};
 	}
 
-	static localDateFromFloatingTime(dstr){
+	static localDateFromFloatingTime(dstr) {
 		return {
 			date: new Date(dstr),
 			floating_date_str: dstr
 		};
+	}
+
+	static mywait(seconds) {
+		const sab = new SharedArrayBuffer(4);
+		const ia = new Int32Array(sab);
+		Atomics.wait(ia, 0, 0, seconds * 1000.0);
+	}
+
+	static mywaitpromise(seconds) {
+		return new Promise(resolve => setTimeout(resolve, seconds));
 	}
 }
 

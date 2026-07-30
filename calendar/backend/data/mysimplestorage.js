@@ -8,7 +8,7 @@ class MySimpleStorage {
 		this._db = db;
 		if (typeof table_create_sql != "string") throw new Error();
 		this.table_create_sql = table_create_sql;
-		this._db.run(table_create_sql);
+		this._db.exec(this.table_create_sql);
 		this._params = params || {};
 		if (!MyUtils.isDict(param_relations)) throw new Error();
 		for (var tn in param_relations) {
@@ -110,8 +110,6 @@ class MySimpleStorage {
 
 
 	_insert_sql(item, table_name) {
-		// console.log("mysimplestorage.js: _insert_sql", table_name, item);
-		// console.log("this.param_relations[table_name]", table_name, this.param_relations[table_name]);
 		var params_related_without_id = this.param_relations[table_name].slice(1);
 		var item_arr = [];
 		for (var param_name of params_related_without_id) {
@@ -176,7 +174,7 @@ class MySimpleStorage {
 			[column_value, eid],
 			(err) => {
 				if (err) {
-					console.log('Error running _update_column_from_id_sql');
+					console.log('Error running update_column_from_id_sql');
 					console.error(err.message);
 					console.error(err.stack);
 					reject(err)
@@ -231,11 +229,11 @@ class MySimpleStorage {
 		return new Promise((resolve, reject) => this._db.run(
 			sql, sql_vs, (err) => {
 				if (err) {
-					console.log('Error running delete_by_id_sql');
+					console.log('Error running delete_all_sql');
 					console.error(err);
 					reject(err)
 				} else {
-					resolve(id)
+					resolve(filter_params)
 				}
 			}
 		))
@@ -245,7 +243,7 @@ class MySimpleStorage {
 		return new Promise((resolve, reject) => this._db.all(
 			"SELECT * FROM " + table_name + " where id = ?", [id], (err, rows) => {
 				if (err) {
-					console.log('Error running _query_one_by_id_sql');
+					console.log('Error running query_one_by_id_sql');
 					console.error(err);
 					reject(err)
 				} else {

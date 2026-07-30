@@ -1,7 +1,7 @@
 require("date-format-lite"); // add date format
 const MySimpleStorage = require("./mysimplestorage");
 
-class StorageNote extends MySimpleStorage{
+class StorageNote extends MySimpleStorage {
 	constructor(db, params) {
 		super(db, `
 		CREATE TABLE IF NOT EXISTS "mynotes" (
@@ -11,32 +11,38 @@ class StorageNote extends MySimpleStorage{
 			"date_create"	TEXT NOT NULL,
 			"is_proj_note"	TEXT NOT NULL DEFAULT 'false', 
 			"pinned_level"	INTEGER NOT NULL DEFAULT -1
-		);`, 
-		{
-			"mynotes": ["id", "title", "content", "date_create", "pinned_level", "is_proj_note"],
-		}, 
-		{
-			"note": "mynotes",
-			"notes": "mynotes",
-		},
-		params);
+		);`,
+			{
+				"mynotes": ["id", "title", "content", "date_create", "is_proj_note", "pinned_level"],
+			},
+			{
+				"note": "mynotes",
+				"notes": "mynotes",
+			},
+			params);
 	}
-	
+
 	async insert(data, table_name) {
-		if(!(table_name in this.param_relations)){
+		if (!(table_name in this.param_relations)) {
 			table_name = this.alias2table_name[table_name];
 		}
-		if(data["date_create"] == undefined || Object.prototype.toString.call(data["date_create"]) != "[object Date]"){
+		if (data["date_create"] == undefined || Object.prototype.toString.call(data["date_create"]) != "[object Date]") {
 			data["date_create"] = new Date();
+		}
+		if (data["is_proj_note"] == undefined) {
+			data["is_proj_note"] = "false";
+		}
+		if (data["pinned_level"] == undefined) {
+			data["pinned_level"] = -1;
 		}
 		return await super.insert(data, table_name);
 	}
 
-	query_all_notes_by_title_sql(title, is_pinned){
+	query_all_notes_by_title_sql(title, is_pinned) {
 		var sql_text = "";
-		if(is_pinned){
+		if (is_pinned) {
 			sql_text = "SELECT * FROM mynotes where title = ? and pinned_level >= 0";
-		}else{
+		} else {
 			sql_text = "SELECT * FROM mynotes where title = ? and pinned_level = -1";
 		}
 		return new Promise((resolve, reject) => this._db.all(
@@ -68,7 +74,7 @@ class StorageNote extends MySimpleStorage{
 
 	// get events from the table, use dynamic loading if parameters sent
 	async getAllNoteTitleWithIDSorted(type_str) {
-		if(type_str != "note"){
+		if (type_str != "note") {
 			throw new Error("Can only retrieve titles of note!");
 		}
 		return this.query_id_title_of_all_pinned_notes_sorted_sql().then((rows) => {

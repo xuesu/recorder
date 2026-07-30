@@ -1,7 +1,6 @@
 //This code is mainly from dhtmlx
 require("date-format-lite"); // add date format
 var xssFilters = require('xss-filters');
-var sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
 const path = require("path");
 const scheduler = require("./scheduler_mini_recurring");
@@ -39,13 +38,11 @@ class EventsStorage extends MySimpleStorage {
 		}
 	}
 
-	_insert_sql(item){
-		// console.log("storagelocal.js: _update_sql", item);
+	_insert_sql(item) {
 		return super._insert_sql(item, "myevents");
 	}
 
 	_update_sql(item) {
-		console.log("storagelocal.js: _update_sql", item);
 		if (typeof item.score != "number") {
 			if (item.score == undefined || item.score == "") item.score = 0;
 			item.score = parseInt(item.score);//or throw Error directly?
@@ -62,19 +59,19 @@ class EventsStorage extends MySimpleStorage {
 	}
 
 	_delete_by_event_pid_sql(event_pid) {
-		return super._delete_all_sql({"event_pid": event_pid}, "myevents");
+		return super._delete_all_sql({ "event_pid": event_pid }, undefined, "myevents");
 	}
 
 	_delete_by_name_sql(name) {
-		return super._delete_all_sql({"name": name}, "myevents");
+		return super._delete_all_sql({ "name": name }, undefined, "myevents");
 	}
 
 	_query_name_sql(name) {
-		return super._query_all_sql({"name": name}, undefined, "myevents");
+		return super._query_all_sql({ "name": name }, undefined, "myevents");
 	}
 
 	_query_event_occur_exists_sql(event_pid, event_length) {
-		return super._query_all_sql({"event_pid": event_pid, "event_length": event_length}, undefined, "myevents");
+		return super._query_all_sql({ "event_pid": event_pid, "event_length": event_length }, undefined, "myevents");
 	}
 
 	_query_all_sql() {
@@ -111,7 +108,6 @@ class EventsStorage extends MySimpleStorage {
 
 	dhtml2db(data, _) {
 		var item = super.dhtml2db(data, "myevents");
-		console.log("storagelocal.js: dhtml2db", item);
 		if ((item.is_finished == "false" || item.is_finished == false || item.is_finished == undefined) && ["PLAN", "FAILED_PLAN"].indexOf(item.etype) != -1) {
 			item.is_finished = "false";
 		} else {
@@ -120,8 +116,7 @@ class EventsStorage extends MySimpleStorage {
 				item.etype = "PLAN";
 			}
 		}
-		console.log("storagelocal.js: dhtml2db2", item);
-		if (item.etype != "PLAN"){
+		if (item.etype != "PLAN") {
 			item["rec_pattern"] = item["rec_type"] = undefined;
 		}
 		// if(data.etype != "PLAN" && data.etype != "FAILED_PLAN"){
@@ -129,7 +124,7 @@ class EventsStorage extends MySimpleStorage {
 		// 	item.event_length = item.event_pid = undefined;
 		// }
 		if (item.details == undefined) item.details = "";
-		for (let attribute_name in ["event_length", "event_pid", "score"]) {
+		for (let attribute_name of ["event_length", "event_pid", "score"]) {
 			if (!Number.isInteger(item[attribute_name])) {
 				if (item[attribute_name] == undefined || (typeof item[attribute_name] === "string" && item[attribute_name].trim().length == 0)) item[attribute_name] = undefined;
 				else item[attribute_name] = parseInt(item[attribute_name]);
@@ -280,8 +275,9 @@ class EventsStorage extends MySimpleStorage {
 		if (data.id != undefined && data.id.indexOf("#") != -1) {
 			scheduler.recover_ev_from_dummy_copy(data);
 		}
+		var item = this.dhtml2db(data);
 		var this2 = this;
-		return await this._query_event_occur_exists_sql(data.event_pid, data.event_length).then(
+		return await this._query_event_occur_exists_sql(item.event_pid, item.event_length).then(
 			rows => {
 				if (rows.length > 0) {
 					return {
@@ -290,7 +286,6 @@ class EventsStorage extends MySimpleStorage {
 						item: rows[0],
 					};
 				} else {
-					var item = this2.dhtml2db(data);
 					return this2._insert_sql(item).then(
 						(item) => {
 							return {
@@ -307,8 +302,7 @@ class EventsStorage extends MySimpleStorage {
 
 	// create new event
 	async insert(data) {
-		console.log("children storage_local.insert");
-		if (data.id != undefined && String(data.id).indexOf("#") != -1) {
+		if ((data.id != undefined && String(data.id).indexOf("#") != -1) || data.event_pid != undefined) {
 			return this.insert_dummy_copy(data);
 		}
 		return super.insert(data, "myevents");
@@ -316,7 +310,6 @@ class EventsStorage extends MySimpleStorage {
 
 	// update event
 	async update(id, data) {
-		console.log("children storage_local.update");
 		data.id = parseInt(id);
 		data.name = xssFilters.inHTMLData(data.text);
 		var item = this.dhtml2db(data);

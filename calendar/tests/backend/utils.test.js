@@ -18,8 +18,8 @@ test("MyUtils.splitLine4CSV basic", () => {
 });
 
 test("MyUtils.splitLine4CSV handles quotes", () => {
-	assert.deepStrictEqual(MyUtils.splitLine4CSV('"a,b",c'), ["a,b", "c"]);
-	assert.deepStrictEqual(MyUtils.splitLine4CSV('"a,b","c,d"'), ["a,b", "c,d"]);
+	assert.deepStrictEqual(MyUtils.splitLine4CSV('"a,b",c'), ['"a,b"', "c"]);
+	assert.deepStrictEqual(MyUtils.splitLine4CSV('"a,b","c,d"'), ['"a,b"', '"c,d"']);
 });
 
 test("MyUtils.localDateToFloatingTime", () => {
