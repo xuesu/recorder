@@ -344,6 +344,7 @@ class EventsStorage extends MySimpleStorage {
 		return this._query_all_unfinished_plan_sql().then((rows) => {
 			for (var i = 0; i < rows.length; i++) {
 				const event = this.db2dhtml(rows[i]);
+				console.log("event", event);
 				if (event.end_date_dateobj < time_now) {
 					event.etype = "FAILED_PLAN";
 					promises.push(this.update(event.id, event));

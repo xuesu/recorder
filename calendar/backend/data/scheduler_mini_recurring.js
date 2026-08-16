@@ -219,6 +219,9 @@ scheduler.repeat_date = function(ev, stack, non_render, from, to, maxCount) {
 		td = this.date.add(td, 1, ev.rec_pattern);
 	}
 };
+scheduler.shift_tid2utc0 = function(tid_with_localtimezone, dateobj_with_localtimezone){
+	return tid_with_localtimezone * 2 - new Date(dateobj_with_localtimezone.toUTCString().substring(0, 25)).valueOf() / 1000;
+}
 
 // ==================== MAIN FUNCTIONS ====================
 
@@ -245,8 +248,7 @@ scheduler.mtrue_copy_series_event = function(ev_series, date_provided, time_now)
 	}
 	
 	var id = ev_dummy_copy.id.split("#");
-	// Force convert to utc time to avoid mismatch in different time zones
-	var tid = parseInt(id[1]) * 2 - new Date(ev_dummy_copy.start_date_dateobj.toUTCString().substring(0, 25)).valueOf() / 1000;
+	var tid = scheduler.shift_tid2utc0(parseInt(id[1]), ev_dummy_copy.start_date_dateobj);
 
 	ev_dummy_copy.id = null;
 	ev_dummy_copy.event_pid = ev_series.event_pid || id[0];

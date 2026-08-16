@@ -1,9 +1,34 @@
 # Project Calendar — Data Model Understanding
 
+## backend/data
+In server end, our basic data CRUD logics are:
+
+1. router.js:setRoutes distributes requests to storage class, including Storage/StorageNote/StorageNoteExt/StorageNotice...
+    - get: getRelated requests, other readonly requests
+    - post: insert, specfic update, other write-able requests
+    - put: update
+    - delete: delete
+2. MySimpleStorage class and its descendants - storageXXX.js:
+    - async function: storage's async function can solve the requests, take in parsed arguments from requests, return desired output and debug/error msgs and handle errors.
+        - the common logic:
+            - A: dispatch CRUD logics(e.g., `async update`) of Storage class
+            - B: call "xxx_sql" sql wrappers of Storage class
+                - do possible safety filters and checks
+                - use dhtml2db to parse the html format data entries into database format
+                - call sql wrappers `_xxx_sql`
+                - if need to return updated entries, call db2dhtml logic to recover the data entries back to HTML payload format.
+        - how to choose between two logics:
+            - if a function is relatively similar to inner CRUD logics and only requires some pre/post procedures, select the CRUD method
+            - if a function requires complex format transformation rather than simple dhtml2db, db2dhtml, then directly use sql wrappers to avoid multiple conversions.
+        - Important: if there are multiple `_xxx_sql` used, be sure to use `await Promise.all([sql1(), sql2()])` or other await to make sure the order of sqls.
+    - sql wrapper - `_xxx_sql`: return a Promise that call sqlite3's CRUD
+        - Important: although sqlite3 seems to be synchronous, it is actually asynchronous. This function only puts the query into the inner job queue instead of waiting for and finishing the query.
+        - Important: one sql wrapper can only contain one db functions(db.run(), db.exec(), db.get(), db.all(), db.each()), or it should be aligned with `db.serialize()`
+
 ## Myevents
 
 ```sql
-CREATE TABLE "myevents" (
+CREATE TABLE IF NOT EXISTS "myevents" (
     "id"          INTEGER PRIMARY KEY AUTOINCREMENT,
     "name"        TEXT NOT NULL,
     "details"     TEXT NOT NULL DEFAULT "",
@@ -25,9 +50,9 @@ Four values: `PLAN`, `FACT`, `SPENT`, `FAILED_PLAN`.
 
 - `FACT`, `SPENT`, `FAILED_PLAN` — all represent things that **already happened**. They differ only in color/display and in how they score points. They are not temporally distinct from each other.
 - `PLAN` — the only "pending/future" type. Has three conceptual sub-kinds (not stored anywhere as an explicit field — purely conceptual/behavioral):
-  - **a) Long-term recurring plan** — always backed by an event series (`rec_pattern`/`rec_type` non-empty), even if it's only meant to occur once, ever.
-  - **b) One-off / standalone plan** — may be either an event series, or a plain occurrence row with no series parent. Can later convert to `FACT`/`SPENT`/`FAILED_PLAN` via an "edit this occurrence" action.
-  - **c) Virtual occurrence** — never a real row. Computed on the fly purely for calendar display, to avoid pre-materializing every future instance of a series. Becomes a real row only if a user edits that specific instance (attribute change triggers materialization; otherwise it stays virtual).
+  - Long-term recurring plan — always backed by an event series (`rec_pattern`/`rec_type` non-empty), even if it's only meant to occur once, ever.
+  - One-off / standalone plan — may be either an event series, or a plain occurrence row with no series parent. Can later convert to `FACT`/`SPENT`/`FAILED_PLAN` via an "edit this occurrence" action.
+  - Virtual occurrence — never a real row. Computed on the fly purely for calendar display, to avoid pre-materializing every future instance of a series. Becomes a real row only if a user edits that specific instance (attribute change triggers materialization; otherwise it stays virtual).
 
 ### Event series vs. event occurrence
 
@@ -37,7 +62,6 @@ Four values: `PLAN`, `FACT`, `SPENT`, `FAILED_PLAN`.
 
 #### Virtual occurrence generation
 Virtual occurrences exist only to render in the HTML calendar and to save DB storage; they carry no `id` of their own until materialized.
-
 
 
 ### `event_pid` — foreign key semantics
@@ -130,3 +154,6 @@ npm audit fix --force
 npx npm-check-updates -u
 npm install
 ```
+
+## TODOs
+

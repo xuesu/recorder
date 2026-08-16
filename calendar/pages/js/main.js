@@ -249,8 +249,8 @@ function deleteDailyCheck() {
         alert("Please select a date!");
         return;
     } else {
-        mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "DELETE", (respText) => {
-            alert("deleteDailyCheck:" + respText);
+        mySimpleReq("/scheduler/backend/dailycheck/" + date_txt_provided, "DELETE", (resp) => {
+            alert("deleteDailyCheck:" + JSON.stringify(resp));
             changeDailyCheckBtnStatus("create");
             if(noteExtMode == "dailycheck"){
                 clearNote();
@@ -310,8 +310,8 @@ function deleteMonthPlan() {
         alert("Please select a date!");
         return;
     } else {
-        mySimpleReq("/scheduler/backend/monthplan/" + date_txt_provided, "DELETE", (respText) => {
-            alert("deleteMonthPlan:" + respText);
+        mySimpleReq("/scheduler/backend/monthplan/" + date_txt_provided, "DELETE", (resp) => {
+            alert("deleteMonthPlan:" + JSON.stringify(resp));
             if(noteExtMode == "monthplan"){
                 clearNote();
             }
@@ -357,8 +357,8 @@ function deleteWeekPlan() {
         alert("Please select a date!");
         return;
     } else {
-        mySimpleReq("/scheduler/backend/weekplan/" + date_txt_provided, "DELETE", (respText) => {
-            alert("deleteWeekPlan:" + respText);
+        mySimpleReq("/scheduler/backend/weekplan/" + date_txt_provided, "DELETE", (resp) => {
+            alert("deleteWeekPlan:" + JSON.stringify(resp));
             if(noteExtMode == "weekplan"){
                 clearNote();
             }
@@ -794,7 +794,7 @@ function loadExpenses() {
         alert("Please select a date!");
         return;
     } else {
-        mySimpleReq("/scheduler/backend/expenses/" + date_txt_provided, "GET", (data) => {
+        mySimpleReq("/scheduler/backend/expenses/" + date_txt_provided, "POST", (data) => {
             if (data.error != undefined || data.action == "error") {
                 alert("Something wrong!" + JSON.stringify(data));
             } else {            

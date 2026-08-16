@@ -163,7 +163,7 @@ module.exports = {
 		}));
 	},
 	setExpensesRoutes(app, prefix, storage) {
-		app.get(`${prefix}/:date_txt_provided`, callMethod((req) => {
+		app.post(`${prefix}/:date_txt_provided`, callMethod((req) => {
 			return storage.refreshExpenses(req.params.date_txt_provided);
 		}));
 	},
