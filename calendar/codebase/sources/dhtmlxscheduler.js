@@ -1393,7 +1393,6 @@ dataProcessor.prototype = {
 		return this._invalid[id];
 	},
 	set_invalid: function (id, mode, details) {
-		console.log("set_invalid");
 		if (details) mode = {
 			value: mode, details: details, toString: function () {
 				return this.value.toString();
@@ -1477,7 +1476,6 @@ dataProcessor.prototype = {
 		var that = this;
 		var back = function (xml) {
 			var ids = [];
-			console.log("back!!", a1, rowId, xml);
 			if (rowId)
 				ids.push(rowId);
 			else if (a1)
@@ -1642,10 +1640,12 @@ dataProcessor.prototype = {
 	 *	 @topic: 0
 	 */
 	afterUpdateCallback: function (sid, tid, action, btag) {
-		console.log("afterUpdateCallback", sid, tid, action, btag);
 		var marker = sid;
 		var correct = (action != "error" && action != "invalid");
-		if (!correct) this.set_invalid(sid, action);
+		if (!correct) {
+			this.set_invalid(sid, action);
+			alert("invalid action!"+ JSON.stringify([sid, tid, btag]));
+		}
 		if ((this._uActions) && (this._uActions[action]) && (!this._uActions[action](btag)))
 			return (delete this._in_progress[marker]);
 
@@ -6836,7 +6836,6 @@ scheduler._load = function(url, from) {
 	var to;
 	from = from || this._date;
 	function ajaxCallback(response) {
-		console.log("ajaxCallback scheduler.on_load(response)", response);
 		scheduler.on_load(response);
 		scheduler.callEvent("onLoadEnd", []);
 	}

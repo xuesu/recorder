@@ -230,14 +230,14 @@ class EventsStorage extends MySimpleStorage {
 					continue;
 				}
 				if (is_planned && event.end_date_dateobj <= date_now) {
-					if (event.is_finished != "true" || event.etype == "FAILED_PLAN") {
+					if (!event.is_finished || event.etype == "FAILED_PLAN") {
 						failedAll += 1;
 						if (event.end_date_dateobj > date_yesterday && event.end_date_dateobj < date_tomorrow) {
 							failedToday += 1;
 						}
 					}
 				}
-				if (event.is_finished == "true") {
+				if (event.is_finished) {
 					if (is_planned) { successAll = successAll + 1; }
 					scoreNow += event.score;
 					if (event.end_date_dateobj > date_yesterday && event.end_date_dateobj < date_tomorrow) {
@@ -322,10 +322,6 @@ class EventsStorage extends MySimpleStorage {
 				message: "cannot update"
 			}
 		}).then((_) => {
-			return {//TODO: only for test, here to mock error
-				action: "error",
-				message: "cannot update"
-			}
 			return {
 				action: "updated",
 				item: this2.db2dhtml(item),
