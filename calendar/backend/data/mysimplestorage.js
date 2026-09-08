@@ -75,7 +75,10 @@ class MySimpleStorage {
 			if (Object.prototype.toString.call(serialized[k]) === "[object Date]") {
 				throw new Error("shouldn't be able to have date from sqlite?");
 			} else if (typeof serialized[k] === "string") {
-				if (k.startsWith("time_") || k.startsWith("date_") || k.endsWith("_time") || k.endsWith("_date")) {
+				if (k.startsWith("is_")) {
+					serialized[k] = serialized[k].toLowerCase() == "true";
+				}
+				else if (k.startsWith("time_") || k.startsWith("date_") || k.endsWith("_time") || k.endsWith("_date")) {
 					if (serialized[k].indexOf("T") != -1) { //Date
 						let tmpobj = MyUtils.localDatefromISO8601WithOffset(serialized[k]);
 						serialized[k] = xssFilters.inHTMLData(tmpobj.floating_date_str);

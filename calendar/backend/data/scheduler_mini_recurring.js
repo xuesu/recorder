@@ -182,7 +182,7 @@ scheduler.transpose_type = function(type) {
 	}
 };
 
-scheduler.repeat_date = function(ev, stack, non_render, from, to, maxCount) {
+scheduler.repeat_date = function(ev, stack, from, to, maxCount) {
 	from = from || this._min_date;
 	to = to || this._max_date;
 	var max = maxCount || -1;
@@ -240,6 +240,7 @@ scheduler.mtrue_copy_series_event = function(ev_series, date_provided, time_now)
 	for (var i = 0; i < stack.length; i += 1) {
 		if (stack[i].end_date_dateobj >= date_provided && (time_now == undefined || stack[i].end_date_dateobj.valueOf() <= time_now.valueOf())) {
 			ev_dummy_copy = stack[i];
+			break;
 		}
 	}
 	

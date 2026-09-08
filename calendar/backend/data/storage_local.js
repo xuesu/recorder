@@ -108,6 +108,7 @@ class EventsStorage extends MySimpleStorage {
 
 	dhtml2db(data, _) {
 		var item = super.dhtml2db(data, "myevents");
+		item.name = xssFilters.inHTMLData(data.text);
 		if ((item.is_finished == "false" || item.is_finished == false || item.is_finished == undefined) && ["PLAN", "FAILED_PLAN"].indexOf(item.etype) != -1) {
 			item.is_finished = "false";
 		} else {
@@ -268,7 +269,6 @@ class EventsStorage extends MySimpleStorage {
 				message: "Cannot getStatistic!"
 			}
 		});
-
 	}
 
 	async insert_dummy_copy(data) {
@@ -311,7 +311,6 @@ class EventsStorage extends MySimpleStorage {
 	// update event
 	async update(id, data) {
 		data.id = parseInt(id);
-		data.name = xssFilters.inHTMLData(data.text);
 		var item = this.dhtml2db(data);
 		var this2 = this;
 		return this._update_sql(item).catch((err) => {
@@ -323,6 +322,10 @@ class EventsStorage extends MySimpleStorage {
 				message: "cannot update"
 			}
 		}).then((_) => {
+			return {//TODO: only for test, here to mock error
+				action: "error",
+				message: "cannot update"
+			}
 			return {
 				action: "updated",
 				item: this2.db2dhtml(item),
@@ -344,7 +347,6 @@ class EventsStorage extends MySimpleStorage {
 		return this._query_all_unfinished_plan_sql().then((rows) => {
 			for (var i = 0; i < rows.length; i++) {
 				const event = this.db2dhtml(rows[i]);
-				console.log("event", event);
 				if (event.end_date_dateobj < time_now) {
 					event.etype = "FAILED_PLAN";
 					promises.push(this.update(event.id, event));

@@ -67,7 +67,7 @@ class StorageNotice extends MySimpleStorage {
 		};
 	}
 
-	async hide_notice_by_id(notice_id) {
+	async hideNoticeByID(notice_id) {
 		let res = await super._update_sql("mynotices", { "id": notice_id, "date_hide": MyUtils.localDateToFloatingTime(new Date(), true) });
 		return res;
 	}

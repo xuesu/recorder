@@ -4,6 +4,7 @@ function callMethod(method) {
 		try {
 			result = await method(req, res);
 		} catch (e) {
+			console.error(e);
 			console.error(e.message);
 			console.error(e.stack);
 			result = {
@@ -133,7 +134,7 @@ module.exports = {
 		}));
 
 		app.post(`${prefix}_hide`, callMethod((req) => {
-			return storage.hide_notice_by_id(req.body.id);
+			return storage.hideNoticeByID(req.body.id);
 		}));
 	},
 	setNoteExtRoutes(app, prefix, storage) {

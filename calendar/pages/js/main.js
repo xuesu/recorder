@@ -798,7 +798,12 @@ function loadExpenses() {
             if (data.error != undefined || data.action == "error") {
                 alert("Something wrong!" + JSON.stringify(data));
             } else {            
-                scheduler.load("/scheduler/backend/events", function(){alert("OK.");});
+                scheduler.load("/scheduler/backend/events", function(){
+                    if (data.error != undefined || data.action == "error") {
+                        alert("Something wrong!" + JSON.stringify(data));
+                    }
+                    else{alert("OK.");}
+            });
             }
         });
     }
