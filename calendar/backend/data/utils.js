@@ -1,4 +1,8 @@
 class MyUtils {
+	// Application-wide timezone for backend wall-clock date handling.
+	// Change this IANA timezone and restart the server to apply it.
+	static serverTimeZone = "Europe/Berlin";
+
 	static splitLine4CSV(line, separator = ",", closure_sym = "\"") {
 		let in_closure = false;
 		let inds = [-1];

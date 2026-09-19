@@ -32,7 +32,7 @@ test("EventsStorage auto-creates myevents table on an empty db", async () => {
 test("EventsStorage insert -> getAll (Create + Read)", async () => {
 	const { db, storage } = await setup();
 	const res = await storage.insert({
-		name: "Test Event",
+		text:"Test Event",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
@@ -46,14 +46,14 @@ test("EventsStorage insert -> getAll (Create + Read)", async () => {
 	assert.strictEqual(all[0].name, "Test Event");
 	assert.strictEqual(all[0].text, "Test Event");
 	assert.strictEqual(all[0].etype, "PLAN");
-	assert.strictEqual(all[0].is_finished, "false");
+	assert.strictEqual(all[0].is_finished, false);
 	db.close();
 });
 
 test("EventsStorage update (Update)", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "Before Update",
+		text:"Before Update",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
@@ -74,7 +74,7 @@ test("EventsStorage update (Update)", async () => {
 	assert.strictEqual(all.length, 1);
 	assert.strictEqual(all[0].name, "After Update");
 	assert.strictEqual(all[0].etype, "FACT");
-	assert.strictEqual(all[0].is_finished, "true");
+	assert.strictEqual(all[0].is_finished, true);
 	assert.strictEqual(all[0].score, 5);
 	db.close();
 });
@@ -82,7 +82,7 @@ test("EventsStorage update (Update)", async () => {
 test("EventsStorage delete (Delete)", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "To Delete",
+		text:"To Delete",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
@@ -101,7 +101,7 @@ test("EventsStorage delete (Delete)", async () => {
 test("EventsStorage getOneByID", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "Find Me",
+		text:"Find Me",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
@@ -118,7 +118,7 @@ test("EventsStorage getOneByID", async () => {
 test("EventsStorage updateDetails", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "Details Target",
+		text:"Details Target",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
@@ -130,8 +130,8 @@ test("EventsStorage updateDetails", async () => {
 
 test("EventsStorage full CRUD cycle", async () => {
 	const { db, storage } = await setup();
-	const a = await storage.insert({ name: "A", start_date: "2024-01-01 10:00", end_date: "2024-01-01 11:00", etype: "PLAN" });
-	await storage.insert({ name: "B", start_date: "2024-01-02 10:00", end_date: "2024-01-02 11:00", etype: "FACT", is_finished: true, score: 3 });
+	const a = await storage.insert({ text:"A", start_date: "2024-01-01 10:00", end_date: "2024-01-01 11:00", etype: "PLAN" });
+	await storage.insert({ text:"B", start_date: "2024-01-02 10:00", end_date: "2024-01-02 11:00", etype: "FACT", is_finished: true, score: 3 });
 	let all = await storage.getAll({});
 	assert.strictEqual(all.length, 2);
 	await storage.update(a.tid, { text: "A2", start_date: "2024-01-01 10:00", end_date: "2024-01-01 11:00", etype: "PLAN" });
@@ -149,7 +149,7 @@ test("EventsStorage full CRUD cycle", async () => {
 test("etype PLAN preserves rec_pattern/rec_type and defaults is_finished=false", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "Recurring Plan",
+		text:"Recurring Plan",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-04-01 11:00",
 		etype: "PLAN",
@@ -159,7 +159,7 @@ test("etype PLAN preserves rec_pattern/rec_type and defaults is_finished=false",
 	});
 	const got = await storage.getOneByID(ins.tid, "myevents");
 	assert.strictEqual(got.data.etype, "PLAN");
-	assert.strictEqual(got.data.is_finished, "false");
+	assert.strictEqual(got.data.is_finished, false);
 	assert.strictEqual(got.data.rec_type, "week_1___1#10");
 	assert.strictEqual(got.data.rec_pattern, "week_1___1");
 	db.close();
@@ -168,7 +168,7 @@ test("etype PLAN preserves rec_pattern/rec_type and defaults is_finished=false",
 test("etype PLAN with is_finished=true keeps rec and is_finished=true", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "Done Plan",
+		text:"Done Plan",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
@@ -179,7 +179,7 @@ test("etype PLAN with is_finished=true keeps rec and is_finished=true", async ()
 	});
 	const got = await storage.getOneByID(ins.tid, "myevents");
 	assert.strictEqual(got.data.etype, "PLAN");
-	assert.strictEqual(got.data.is_finished, "true");
+	assert.strictEqual(got.data.is_finished, true);
 	assert.strictEqual(got.data.rec_type, "day_1#5");
 	assert.strictEqual(got.data.score, 7);
 	db.close();
@@ -188,7 +188,7 @@ test("etype PLAN with is_finished=true keeps rec and is_finished=true", async ()
 test("etype FACT forces is_finished=true and clears rec_pattern/rec_type", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "Fact",
+		text:"Fact",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "FACT",
@@ -197,7 +197,7 @@ test("etype FACT forces is_finished=true and clears rec_pattern/rec_type", async
 	});
 	const got = await storage.getOneByID(ins.tid, "myevents");
 	assert.strictEqual(got.data.etype, "FACT");
-	assert.strictEqual(got.data.is_finished, "true");
+	assert.strictEqual(got.data.is_finished, true);
 	// rec_pattern/rec_type are cleared by dhtml2db for non-PLAN
 	assert.ok(!got.data.rec_type);
 	assert.ok(!got.data.rec_pattern);
@@ -207,7 +207,7 @@ test("etype FACT forces is_finished=true and clears rec_pattern/rec_type", async
 test("etype SPENT forces is_finished=true and clears rec_pattern/rec_type", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "Spent",
+		text:"Spent",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "SPENT",
@@ -217,7 +217,7 @@ test("etype SPENT forces is_finished=true and clears rec_pattern/rec_type", asyn
 	});
 	const got = await storage.getOneByID(ins.tid, "myevents");
 	assert.strictEqual(got.data.etype, "SPENT");
-	assert.strictEqual(got.data.is_finished, "true");
+	assert.strictEqual(got.data.is_finished, true);
 	assert.ok(!got.data.rec_type);
 	assert.ok(!got.data.rec_pattern);
 	assert.strictEqual(got.data.score, -5);
@@ -227,7 +227,7 @@ test("etype SPENT forces is_finished=true and clears rec_pattern/rec_type", asyn
 test("etype FAILED_PLAN with is_finished=true is converted to PLAN and keeps rec", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "Failed",
+		text:"Failed",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-04-01 11:00",
 		etype: "FAILED_PLAN",
@@ -238,7 +238,7 @@ test("etype FAILED_PLAN with is_finished=true is converted to PLAN and keeps rec
 	const got = await storage.getOneByID(ins.tid, "myevents");
 	// FAILED_PLAN + is_finished true -> etype becomes PLAN, is_finished stays true, rec preserved
 	assert.strictEqual(got.data.etype, "PLAN");
-	assert.strictEqual(got.data.is_finished, "true");
+	assert.strictEqual(got.data.is_finished, true);
 	assert.strictEqual(got.data.rec_type, "week_1___1#10");
 	assert.strictEqual(got.data.rec_pattern, "week_1___1");
 	db.close();
@@ -247,7 +247,7 @@ test("etype FAILED_PLAN with is_finished=true is converted to PLAN and keeps rec
 test("etype FAILED_PLAN with is_finished=false stays FAILED_PLAN and clears rec", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "FailedUnfinished",
+		text:"FailedUnfinished",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "FAILED_PLAN",
@@ -258,7 +258,7 @@ test("etype FAILED_PLAN with is_finished=false stays FAILED_PLAN and clears rec"
 	const got = await storage.getOneByID(ins.tid, "myevents");
 	// is_finished false + etype in [PLAN, FAILED_PLAN] -> first branch, stays FAILED_PLAN
 	assert.strictEqual(got.data.etype, "FAILED_PLAN");
-	assert.strictEqual(got.data.is_finished, "false");
+	assert.strictEqual(got.data.is_finished, false);
 	// then etype != "PLAN" -> rec cleared
 	assert.ok(!got.data.rec_type);
 	assert.ok(!got.data.rec_pattern);
@@ -268,7 +268,7 @@ test("etype FAILED_PLAN with is_finished=false stays FAILED_PLAN and clears rec"
 test("etype SPENT with 白噪 in name and no score auto-calculates negative score", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "白噪时间",
+		text:"白噪时间",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "SPENT",
@@ -283,7 +283,7 @@ test("etype SPENT with 白噪 in name and no score auto-calculates negative scor
 test("update from PLAN to FACT clears rec_pattern/rec_type", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "PlanToFact",
+		text:"PlanToFact",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
@@ -300,7 +300,7 @@ test("update from PLAN to FACT clears rec_pattern/rec_type", async () => {
 	});
 	const got = await storage.getOneByID(ins.tid, "myevents");
 	assert.strictEqual(got.data.etype, "FACT");
-	assert.strictEqual(got.data.is_finished, "true");
+	assert.strictEqual(got.data.is_finished, true);
 	assert.ok(!got.data.rec_type);
 	assert.ok(!got.data.rec_pattern);
 	db.close();
@@ -309,7 +309,7 @@ test("update from PLAN to FACT clears rec_pattern/rec_type", async () => {
 test("update FACT back to PLAN restores ability to hold rec_pattern/rec_type", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "FactToPlan",
+		text:"FactToPlan",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "FACT",
@@ -328,7 +328,7 @@ test("update FACT back to PLAN restores ability to hold rec_pattern/rec_type", a
 	});
 	const got = await storage.getOneByID(ins.tid, "myevents");
 	assert.strictEqual(got.data.etype, "PLAN");
-	assert.strictEqual(got.data.is_finished, "false");
+	assert.strictEqual(got.data.is_finished, false);
 	assert.strictEqual(got.data.rec_type, "week_1___1#4");
 	assert.strictEqual(got.data.rec_pattern, "week_1___1");
 	db.close();
@@ -339,7 +339,7 @@ test("update FACT back to PLAN restores ability to hold rec_pattern/rec_type", a
 test("insert with positive ISO8601 offset stores zoned format and round-trips", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "ZonedPos",
+		text:"ZonedPos",
 		start_date: "2024-01-01 11:00",
 		start_date_timezoneoffset: 120, // +02:00
 		end_date: "2024-01-01 12:00",
@@ -365,7 +365,7 @@ test("insert with positive ISO8601 offset stores zoned format and round-trips", 
 test("insert with negative ISO8601 offset stores zoned format and round-trips", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "ZonedNeg",
+		text:"ZonedNeg",
 		start_date: "2024-01-01 11:00",
 		start_date_timezoneoffset: -300, // -05:00
 		end_date: "2024-01-01 12:00",
@@ -386,7 +386,7 @@ test("insert with negative ISO8601 offset stores zoned format and round-trips", 
 test("ISO8601 offset with non-zero minutes (e.g. +05:30) round-trips", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "ZonedIndia",
+		text:"ZonedIndia",
 		start_date: "2024-01-01 11:00",
 		start_date_timezoneoffset: 330, // +05:30
 		end_date: "2024-01-01 12:00",
@@ -405,13 +405,13 @@ test("ISO8601 offset with non-zero minutes (e.g. +05:30) round-trips", async () 
 test("floating-time and ISO8601 events coexist and are distinguishable", async () => {
 	const { db, storage } = await setup();
 	await storage.insert({
-		name: "Floating",
+		text:"Floating",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
 	});
 	await storage.insert({
-		name: "Zoned",
+		text:"Zoned",
 		start_date: "2024-01-01 10:00",
 		start_date_timezoneoffset: 60, // +01:00
 		end_date: "2024-01-01 11:00",
@@ -437,7 +437,7 @@ test("floating-time and ISO8601 events coexist and are distinguishable", async (
 test("update with ISO8601 offset changes stored format to zoned", async () => {
 	const { db, storage } = await setup();
 	const ins = await storage.insert({
-		name: "ToZone",
+		text:"ToZone",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
@@ -466,7 +466,7 @@ test("update with ISO8601 offset changes stored format to zoned", async () => {
 test("getAll from/to filtering works with ISO8601 zoned dates", async () => {
 	const { db, storage } = await setup();
 	await storage.insert({
-		name: "ZonedA",
+		text: "ZonedA",
 		start_date: "2024-01-10 10:00",
 		start_date_timezoneoffset: 120,
 		end_date: "2024-01-10 11:00",
@@ -474,7 +474,7 @@ test("getAll from/to filtering works with ISO8601 zoned dates", async () => {
 		etype: "PLAN",
 	});
 	await storage.insert({
-		name: "ZonedB",
+		text: "ZonedB",
 		start_date: "2024-02-10 10:00",
 		start_date_timezoneoffset: 120,
 		end_date: "2024-02-10 11:00",
@@ -498,7 +498,6 @@ function makeSeries(overrides = {}) {
 	return Object.assign({
 		id: 1,
 		text: "WeeklySeries",
-		name: "WeeklySeries",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-04-01 11:00",
 		start_date_dateobj: new Date(2024, 0, 1, 10, 0),
@@ -507,7 +506,7 @@ function makeSeries(overrides = {}) {
 		rec_pattern: "week_1___1",
 		event_length: 3600,
 		etype: "PLAN",
-		is_finished: "false",
+		is_finished: false,
 	}, overrides);
 }
 
@@ -606,7 +605,7 @@ test("scheduler.mtrue_copy_series_event returns null when no occurrence in range
 test("insert with id containing '#' materializes a series occurrence (insert_dummy_copy)", async () => {
 	const { db, storage } = await setup();
 	const series = await storage.insert({
-		name: "SeriesRoot",
+		text:"SeriesRoot",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-04-01 11:00",
 		etype: "PLAN",
@@ -641,7 +640,7 @@ test("insert with id containing '#' materializes a series occurrence (insert_dum
 test("insert_dummy_copy is idempotent: second insert of same occurrence returns query", async () => {
 	const { db, storage } = await setup();
 	const series = await storage.insert({
-		name: "SeriesRoot2",
+		text:"SeriesRoot2",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-04-01 11:00",
 		etype: "PLAN",
@@ -670,7 +669,7 @@ test("insert_dummy_copy is idempotent: second insert of same occurrence returns 
 test("delete on a series also deletes its materialized occurrences (event_pid cleanup)", async () => {
 	const { db, storage } = await setup();
 	const series = await storage.insert({
-		name: "SeriesForDelete",
+		text:"SeriesForDelete",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-04-01 11:00",
 		etype: "PLAN",
@@ -699,7 +698,7 @@ test("delete on a series also deletes its materialized occurrences (event_pid cl
 test("updateFailedPlan marks past unfinished PLAN as FAILED_PLAN", async () => {
 	const { db, storage } = await setup();
 	const past = await storage.insert({
-		name: "PastPlan",
+		text:"PastPlan",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
@@ -707,14 +706,14 @@ test("updateFailedPlan marks past unfinished PLAN as FAILED_PLAN", async () => {
 	await storage.updateFailedPlan(new Date());
 	const got = await storage.getOneByID(past.tid, "myevents");
 	assert.strictEqual(got.data.etype, "FAILED_PLAN");
-	assert.strictEqual(got.data.is_finished, "false");
+	assert.strictEqual(got.data.is_finished, false);
 	db.close();
 });
 
 test("updateFailedPlan leaves future PLAN unchanged", async () => {
 	const { db, storage } = await setup();
 	const future = await storage.insert({
-		name: "FuturePlan",
+		text:"FuturePlan",
 		start_date: "2099-01-01 10:00",
 		end_date: "2099-01-01 11:00",
 		etype: "PLAN",
@@ -722,14 +721,14 @@ test("updateFailedPlan leaves future PLAN unchanged", async () => {
 	await storage.updateFailedPlan(new Date());
 	const got = await storage.getOneByID(future.tid, "myevents");
 	assert.strictEqual(got.data.etype, "PLAN");
-	assert.strictEqual(got.data.is_finished, "false");
+	assert.strictEqual(got.data.is_finished, false);
 	db.close();
 });
 
 test("updateFailedPlan leaves already-finished FACT untouched", async () => {
 	const { db, storage } = await setup();
 	const fact = await storage.insert({
-		name: "DoneFact",
+		text:"DoneFact",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "FACT",
@@ -739,7 +738,7 @@ test("updateFailedPlan leaves already-finished FACT untouched", async () => {
 	await storage.updateFailedPlan(new Date());
 	const got = await storage.getOneByID(fact.tid, "myevents");
 	assert.strictEqual(got.data.etype, "FACT");
-	assert.strictEqual(got.data.is_finished, "true");
+	assert.strictEqual(got.data.is_finished, true);
 	assert.strictEqual(got.data.score, 5);
 	db.close();
 });
@@ -750,7 +749,7 @@ test("getStatistic aggregates scoreNow and failedAll across etypes", async () =>
 	const { db, storage } = await setup();
 	// finished FACT with score 10 -> counts toward scoreNow
 	await storage.insert({
-		name: "ScoredFact",
+		text:"ScoredFact",
 		start_date: "2024-01-01 08:00",
 		end_date: "2024-01-01 09:00",
 		etype: "FACT",
@@ -759,19 +758,20 @@ test("getStatistic aggregates scoreNow and failedAll across etypes", async () =>
 	});
 	// unfinished PLAN in the past -> counts toward failedAll
 	await storage.insert({
-		name: "FailedPastPlan",
+		text:"FailedPastPlan",
 		start_date: "2024-01-01 10:00",
 		end_date: "2024-01-01 11:00",
 		etype: "PLAN",
 	});
 	// future PLAN -> not counted as failed
 	await storage.insert({
-		name: "FuturePlan",
+		text:"FuturePlan",
 		start_date: "2099-01-01 10:00",
 		end_date: "2099-01-01 11:00",
 		etype: "PLAN",
 	});
 	const stats = await storage.getStatistic({});
+	assert.strictEqual(stats.serverTimeZone, MyUtils.serverTimeZone);
 	assert.strictEqual(stats.scoreNow, 10);
 	assert.ok(stats.failedAll >= 1, `expected failedAll >= 1, got ${stats.failedAll}`);
 	db.close();

@@ -259,6 +259,7 @@ class EventsStorage extends MySimpleStorage {
 				"successToday": successToday,
 				"failedAll": failedAll,
 				"successAll": successAll,
+				"serverTimeZone": MyUtils.serverTimeZone,
 			}
 		}).catch((err) => {
 			console.log('Error: ');

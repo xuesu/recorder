@@ -99,6 +99,11 @@ Virtual occurrences exist only to render in the HTML calendar and to save DB sto
     - `scheduler._fix_daylight_saving_date`: targeting the days accross summer/winter timezone switches.
         - basically check if `start_date.getTimezoneOffset()` equals to `end_date.getTimezoneOffset()`
     - Important: getTimezoneOffset() is not just reading a single fixed offset from local timezone, it can handle the DST time offset.
+- for frontend, the scheduler would first call `get_visible_events`, that 
+    1. remove the `_rec_temp` cache of virtual occurences. 
+    2. `scheduler.repeat_date`
+        - Here the id of virtual occurence = `<id of parent event series>#<timestamp-in-seconds>`
+    3. `scheduler._get_rec_marker(timestamp, series.id)` would check for the materialized occurence child of this series.id at that timestamp
 
 ### `event_pid` — foreign key semantics
 
@@ -184,7 +189,6 @@ a solar year isn't exactly 365 days. It's about 365.2422 days. Those leftover ~0
 - Recurring Plan: with `rec_pattern`
 - Standalone Occurence: have instance
 - Virtual Occurence: computed on-the-fly
-
 
 ## mynotes
 
