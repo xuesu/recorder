@@ -338,7 +338,10 @@ async function displayMemEntryCard(mem_entry_id){
             document.getElementById("memquiz_view_card_title").innerText = " Book:" + membookIDSelected + " " + mementry_ids_source["tp"] + ":" + mementry_ids_source["id"] + " Entry:" + mem_entry_id;
             document.getElementById("memquiz_view_card_body_name").innerText = mem_entry.name;
             document.getElementById("memquiz_view_card_body_text").innerText = mem_entry.text;
-            let details_html_arr =  await getHTMLOfMemEntryDetails(mem_entry, false);
+            let details_html_arr =  await getHTMLOfMemEntryDetails(mem_entry, false).catch((err) => {
+                console.error(err);
+                return [];
+            });
             document.getElementById("memquiz_view_card_body_details").innerHTML = details_html_arr.join("\n");
             mementryIDSelected = mem_entry_id;
             document.getElementById("memquiz_view_card_play").onclick = ()=>(ttsAndPlay_by_mementry_id(mementryIDSelected));
@@ -356,7 +359,10 @@ async function displayMemEntryTest(mem_entry_id){
             document.getElementById("memquiz_view_card_title").innerText = " Book:" + membookIDSelected + " " + mementry_ids_source["tp"] + ":" + mementry_ids_source["id"] + " Entry:" + mem_entry_id;
             document.getElementById("memquiz_view_card_body_name").innerText = mem_entry.name;
             document.getElementById("memquiz_view_card_body_text").innerText = mem_entry.text;
-            let details_html_arr =  await getHTMLOfMemEntryDetails(mem_entry, false);
+            let details_html_arr =  await getHTMLOfMemEntryDetails(mem_entry, false).catch((err) => {
+                console.error(err);
+                return [];
+            });
             document.getElementById("memquiz_view_card_body_details").innerHTML = details_html_arr.join("\n");
             mementryIDSelected = mem_entry_id;
             ttsAndPlay_by_mementry_id(mementryIDSelected);
@@ -402,7 +408,10 @@ async function getHTMLOfMemEntryDetails(mem_entry, flat=false, with_attr_name=tr
 async function displayMemEntriesInTable(table_ele, mem_entries){
     clear_all_info_tr(table_ele);
 	for(var i = 0;i < mem_entries.length;i+=1) {
-        values_html_arr = ["<button onclick='ttsAndPlay_by_mementry_id(" + mem_entries[i].id + ")'>🔊</button>", normalStringToElementP(mem_entries[i]['text'])].concat(await getHTMLOfMemEntryDetails(mem_entries[i], false));
+        values_html_arr = ["<button onclick='ttsAndPlay_by_mementry_id(" + mem_entries[i].id + ")'>🔊</button>", normalStringToElementP(mem_entries[i]['text'])].concat(await getHTMLOfMemEntryDetails(mem_entries[i], false).catch((err) => {
+            console.error(err);
+            return [];
+        }));
 		add_info_tr_ex_with_html(
             "r" + mem_entries[i].id,
             mem_entries[i]['name'], 

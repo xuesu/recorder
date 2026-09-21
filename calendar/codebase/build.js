@@ -52,4 +52,7 @@ const files = walk(SOURCES, "", []);
     ok++;
   }
   console.log(`Done: ${ok} file(s) written under ${CODEBASE}`);
-})();
+})().catch((err) => {
+  console.error("Build failed:", err);
+  process.exitCode = 1;
+});

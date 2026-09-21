@@ -128,7 +128,7 @@ class StorageNoteExt{
                 message: "cannot getOneByName before create!"
             };
         });
-		if (query_res.data == undefined) {
+		if (query_res.action != "error" && query_res.data == undefined) {
             var event_item = await this.createNoteEventInstanceFromExample(date_txt_provided, type_str);
             if(event_item == undefined){
                 return {
@@ -167,6 +167,12 @@ class StorageNoteExt{
             console.error(err.message);
             console.error(err.stack);
         });
+		if (rows == undefined) {
+            return {
+                action: "error",
+                message: "cannot query note event before update"
+            };
+        }
 		if (rows.length == 0) {
             return {
                 action: "error",
@@ -183,7 +189,8 @@ class StorageNoteExt{
             };
         }
 		item.score = this.calcDailyCheckScore(todo_item.children);
-        this._event_storage._update_sql(item);
+        const update_res = await this._event_storage._update_sql(item);
+        if (update_res.action == "error") return update_res;
 		return await this.getOneByName(date_txt_provided, type_str);
 	}
 

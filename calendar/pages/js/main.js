@@ -17,8 +17,16 @@ async function mySimpleReq(url, method, callback, data = {}) {
         payload.body = JSON.stringify(data);
     }
     await fetch(url, payload)
-        .then(resp => resp.json())
-        .then(x => callback(x))
+        .then(resp => {
+            if (!resp.ok) throw new Error("HTTP " + resp.status);
+            return resp.json();
+        })
+        .then(x => {
+            if (x != undefined && x.action == "error") {
+                throw new Error(x.message || "Request failed");
+            }
+            callback(x);
+        })
         .catch((error) => {
             err_msg = error;
             if (typeof error != "string") {
@@ -44,8 +52,16 @@ async function myCORSReq(url, method, callback, data = {}) {
         payload.body = JSON.stringify(data);
     }
     await fetch(url, payload)
-        .then(resp => resp.json())
-        .then(x => callback(x))
+        .then(resp => {
+            if (!resp.ok) throw new Error("HTTP " + resp.status);
+            return resp.json();
+        })
+        .then(x => {
+            if (x != undefined && x.action == "error") {
+                throw new Error(x.message || "Request failed");
+            }
+            callback(x);
+        })
         .catch((error) => {
             err_msg = error;
             if (typeof error != "string") {

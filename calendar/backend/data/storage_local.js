@@ -314,18 +314,18 @@ class EventsStorage extends MySimpleStorage {
 		serialized.id = parseInt(id);
 		var item = this.dhtml2db(serialized);
 		var this2 = this;
-		return this._update_sql(item).catch((err) => {
+		return this._update_sql(item).then((_) => {
+			return {
+				action: "updated",
+				item: this2.db2dhtml(item),
+			}
+		}).catch((err) => {
 			console.log('Error: ');
 			console.error(err.message);
 			console.error(err.stack);
 			return {
 				action: "error",
 				message: "cannot update"
-			}
-		}).then((_) => {
-			return {
-				action: "updated",
-				item: this2.db2dhtml(item),
 			}
 		});
 	}
@@ -353,15 +353,21 @@ class EventsStorage extends MySimpleStorage {
 						promises.push(this._query_event_occur_exists_sql(event_occur_serialized.event_pid, event_occur_serialized.event_length).then((rows) => {
 							if (rows.length == 0) {
 								event_occur_serialized.etype = "FAILED_PLAN";
-								this.insert(event_occur_serialized);
+								return this.insert(event_occur_serialized);
 							}
 						}));
 					}
 				}
 			}
-
 		}).then((_) => {
-			return Promise.all(promises);
+			return Promise.all(promises).then((resp)=>{
+				for(let subresp of resp){
+					if(subresp?.action == "error")return subresp;
+				}
+				return {
+					action: "update"
+				};
+			});
 		}).catch((err) => {
 			console.log('Error: ');
 			console.error(err.message);
@@ -388,7 +394,7 @@ class EventsStorage extends MySimpleStorage {
 	async refreshExpenses(date_txt_provided) {
 		var date_provided = new Date(Date.parse(date_txt_provided));
 		var res = await this.updateFailedPlan(date_provided);
-		if (res.action == "error")return res
+		if (res.action == "error")return res;
 		date_txt_provided = MyUtils.localDateToFloatingTimeStr(date_provided, false);
 
 		var buf = "";
@@ -435,27 +441,37 @@ class EventsStorage extends MySimpleStorage {
 		});
 		item.score = Math.round(item.score);
 		let rows = await this._query_name_sql(item.name);
-		if (rows.length == 0) {
-			await this._insert_sql(item).catch((err) => {
-				console.log('Error: ');
-				console.error(err.message);
-				console.error(err.stack);
+		let need_insert = false, need_report_error = false;
+		try{
+			let res = {};
+			if (rows.length == 0) {
+				need_insert = true;
+				res = await this._insert_sql(item);
+			} else {
+				item.id = rows[0].id;
+				res = await this._update_sql(item);
+			}
+			if(res.action == "error"){
+				need_report_error = true;
+			}
+		}catch(err){
+			console.log('Error: ');
+			console.error(err.message);
+			console.error(err.stack);
+			need_report_error = true;
+		}
+		if(need_report_error){
+			if (need_insert) {
 				return {
 					action: "error",
 					message: "cannot insert in refreshExpenses"
 				}
-			});
-		} else {
-			item.id = rows[0].id;
-			await this._update_sql(item).catch((err) => {
-				console.log('Error: ');
-				console.error(err.message);
-				console.error(err.stack);
+			}else{
 				return {
 					action: "error",
 					message: "cannot update in refreshExpenses"
 				}
-			});
+			}
 		}
 		return {
 			action: "update",
@@ -464,18 +480,18 @@ class EventsStorage extends MySimpleStorage {
 
 	async updateDetails(eid, details_str) {
 		eid = parseInt(eid);
-		return this._update_details_sql_via_id(eid, details_str).catch((err) => {
+		return this._update_details_sql_via_id(eid, details_str).then((eid, details_str) => {
+			return {
+				action: "updated",
+				id: eid,
+			}
+		}).catch((err) => {
 			console.log('Error: ');
 			console.error(err.message);
 			console.error(err.stack);
 			return {
 				action: "error",
 				message: "cannot updateDetails"
-			}
-		}).then((eid, details_str) => {
-			return {
-				action: "updated",
-				id: eid,
 			}
 		});
 	}

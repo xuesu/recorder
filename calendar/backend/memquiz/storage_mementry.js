@@ -187,8 +187,8 @@ class StorageMemEntry extends MySimpleStorage {
         parser.write(fcontent);
         parser.end();
         return Promise.all(promises).then((resp) => {
-            if (resp.action == "error") {
-                return resp;
+            for (let subresp of resp) {
+                if (subresp?.action == "error") return subresp;
             }
             return {
                 action: "imported",

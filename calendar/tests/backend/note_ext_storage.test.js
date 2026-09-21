@@ -74,6 +74,41 @@ test("StorageNoteExt update on non-existent returns error", async () => {
 	db.close();
 });
 
+test("StorageNoteExt create returns a query error without inserting", async () => {
+	let insertCalled = false;
+	const eventStorage = {
+		_insert_sql: async () => {
+			insertCalled = true;
+		}
+	};
+	const noteExt = new StorageNoteExt(eventStorage, {});
+	noteExt.getOneByName = async () => ({ action: "error" });
+
+	const res = await noteExt.create("2024-03-02", "dailycheck");
+	assert.strictEqual(res.action, "error");
+	assert.strictEqual(insertCalled, false);
+});
+
+test("StorageNoteExt update returns an error when its initial query rejects", async () => {
+	const eventStorage = {
+		_query_name_sql: async () => {
+			throw new Error("query failed");
+		},
+		_update_sql: async () => {
+			throw new Error("update should not run");
+		}
+	};
+	const noteExt = new StorageNoteExt(eventStorage, {});
+
+	const res = await noteExt.update(
+		"2024-03-03",
+		{ text: "## TODO\n- [x] 5: X\n" },
+		"dailycheck"
+	);
+	assert.strictEqual(res.action, "error");
+	assert.strictEqual(res.message, "cannot query note event before update");
+});
+
 test("StorageNoteExt getNoteEventInstanceName naming for weekplan/monthplan", async () => {
 	const { db, noteExt } = setup();
 	// 2024-01-17 is a Wednesday; weekplan snaps to Monday 2024-01-15

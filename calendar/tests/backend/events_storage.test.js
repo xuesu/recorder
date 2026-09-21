@@ -1,5 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert");
+const fs = require("node:fs");
 const { createDb } = require("../helpers/db");
 const scheduler = require("../../backend/data/scheduler_mini_recurring");
 const EventsStorage = require("../../backend/data/storage_local");
@@ -741,6 +742,48 @@ test("updateFailedPlan leaves already-finished FACT untouched", async () => {
 	assert.strictEqual(got.data.is_finished, true);
 	assert.strictEqual(got.data.score, 5);
 	db.close();
+});
+
+async function withMockedAccountFile(fn) {
+	const originalExistsSync = fs.existsSync;
+	const originalReadFileSync = fs.readFileSync;
+	const originalOneDriveConsumer = process.env.OneDriveConsumer;
+	fs.existsSync = () => true;
+	fs.readFileSync = () => "";
+	process.env.OneDriveConsumer = ".";
+	try {
+		await fn();
+	} finally {
+		fs.existsSync = originalExistsSync;
+		fs.readFileSync = originalReadFileSync;
+		if (originalOneDriveConsumer == undefined) {
+			delete process.env.OneDriveConsumer;
+		} else {
+			process.env.OneDriveConsumer = originalOneDriveConsumer;
+		}
+	}
+}
+
+test("refreshExpenses rejects when its insert fails", async () => {
+	const expected = new Error("insert failed");
+	const storage = Object.create(EventsStorage.prototype);
+	storage.updateFailedPlan = async () => [];
+	storage._query_name_sql = async () => [];
+	storage._insert_sql = async () => {
+		throw expected;
+	};
+	assert.strictEqual((await storage.refreshExpenses("2024-01-01")).action, "error");
+});
+
+test("refreshExpenses rejects when its update fails", async () => {
+	const expected = new Error("update failed");
+	const storage = Object.create(EventsStorage.prototype);
+	storage.updateFailedPlan = async () => [];
+	storage._query_name_sql = async () => [{ id: 1 }];
+	storage._update_sql = async () => {
+		throw expected;
+	};
+	assert.strictEqual((await storage.refreshExpenses("2024-01-01")).action, "error");
 });
 
 // ==================== getStatistic with etypes ====================
