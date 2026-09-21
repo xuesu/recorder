@@ -10,7 +10,7 @@ To use dhtmlxScheduler in non-GPL projects (and get Pro version of the product),
 */
 Scheduler.plugin(function(scheduler){
 
-scheduler.config.occurrence_timestamp_in_utc = true;
+scheduler.config.occurrence_timestamp_in_utc = true; //fixed
 scheduler.config.recurring_workdays = [1,2,3,4,5];
 scheduler.form_blocks["recurring"] = {
 	_get_node : function(node){

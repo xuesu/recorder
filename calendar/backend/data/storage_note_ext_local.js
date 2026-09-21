@@ -7,13 +7,13 @@ function getNoteEventInstanceName(date_txt_provided, type_str) {
         if(type_str == "monthplan"){
             let start_date = new Date(Date.parse(date_txt_provided));
             start_date.setDate(1);
-            date_txt_provided = MyUtils.localDateToFloatingTime(start_date, false);
+            date_txt_provided = MyUtils.localDateToFloatingTimeStr(start_date, false);
         }
         else if(type_str == "weekplan"){
             let start_date = new Date(Date.parse(date_txt_provided));
             let dur = start_date.getDay() - 1;
             start_date = new Date(start_date.valueOf() - dur * 24 * 3600 * 1000);
-            date_txt_provided = MyUtils.localDateToFloatingTime(start_date, false);
+            date_txt_provided = MyUtils.localDateToFloatingTimeStr(start_date, false);
         }
     }
     return type_str + "_" + date_txt_provided;
@@ -81,13 +81,13 @@ class StorageNoteExt{
         }
 		var score = this.calcDailyCheckScore(todo_item.children);
 		return {
-			"name": getNoteEventInstanceName(MyUtils.localDateToFloatingTime(start_date, false), type_str),
+			"name": getNoteEventInstanceName(MyUtils.localDateToFloatingTimeStr(start_date, false), type_str),
 			"is_finished": "true",
 			"details": details_str,
 			"score": score,
 			"etype": "FACT",
-			"start_date": MyUtils.localDateToFloatingTime(start_date, true),
-			"end_date": MyUtils.localDateToFloatingTime(end_date, true),
+			"start_date": MyUtils.localDateToFloatingTimeStr(start_date, true),
+			"end_date": MyUtils.localDateToFloatingTimeStr(end_date, true),
 			"event_length": undefined,
 			"event_pid": undefined,
 			"rec_pattern": "",
@@ -152,15 +152,15 @@ class StorageNoteExt{
         }
 	}
 
-	async update(date_txt_provided, postdata, type_str) {
-        if (postdata.text == undefined) {
+	async update(date_txt_provided, serialized, type_str) {
+        if (serialized.text == undefined) {
             return {
                 action: "error",
                 message: "details.text is empty"
             };
         }
         
-		postdata.text = postdata.text.replace(/\t/g, "    ");
+		serialized.text = serialized.text.replace(/\t/g, "    ");
         let name = getNoteEventInstanceName(date_txt_provided, type_str);
 		let rows = await this._event_storage._query_name_sql(name).catch((err) => {
             console.log('Error: ');
@@ -174,7 +174,7 @@ class StorageNoteExt{
             };
 		} 
 		var item = rows[0];
-		item.details = postdata.text
+		item.details = serialized.text
         var todo_item = note_format_parser.parse_todo_tree(item.details);
         if(todo_item == undefined){
             return {

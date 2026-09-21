@@ -38,12 +38,12 @@ class StorageNotice extends MySimpleStorage {
 		}
 		var res = await super.getAll(filter_params, extra_conditions, table_name);
 		if (!need_postprocess || res.action == "error") return res;
-		var postitems = [];
-		for (var item of res.data) {
+		var filtered_serialized = [];
+		for (var serialized of res.data) {
 			var is_filtered = false;
 			for (var param_name in postprocess_filter_params) {
 				var param_con = postprocess_filter_params[param_name];
-				var param_value = item[param_name];
+				var param_value = serialized[param_name];
 				if (param_con == "beforenow") {
 					if (param_value != undefined && new Date(param_value) > new Date()) is_filtered = true;
 				}
@@ -59,16 +59,16 @@ class StorageNotice extends MySimpleStorage {
 				}
 				if (is_filtered) break;
 			}
-			if (!is_filtered) postitems.push(item);
+			if (!is_filtered) filtered_serialized.push(serialized);
 		}
 		return {
-			data: postitems,
+			data: filtered_serialized,
 			action: "query"
 		};
 	}
 
 	async hideNoticeByID(notice_id) {
-		let res = await super._update_sql("mynotices", { "id": notice_id, "date_hide": MyUtils.localDateToFloatingTime(new Date(), true) });
+		let res = await super._update_sql("mynotices", { "id": notice_id, "date_hide": MyUtils.localDateToFloatingTimeStr(new Date(), true) });
 		return res;
 	}
 

@@ -32,8 +32,8 @@ class EventsStorage extends MySimpleStorage {
 			},
 			params);
 		if (collection) {
-			collection.forEach(item => {
-				this.insert(item);
+			collection.forEach(serialized => {
+				this.insert(serialized);
 			});
 		}
 	}
@@ -106,9 +106,9 @@ class EventsStorage extends MySimpleStorage {
 		))
 	}
 
-	dhtml2db(data, _) {
-		var item = super.dhtml2db(data, "myevents");
-		item.name = xssFilters.inHTMLData(data.text);
+	dhtml2db(serialized, _) {
+		var item = super.dhtml2db(serialized, "myevents");
+		item.name = xssFilters.inHTMLData(serialized.text);
 		if ((item.is_finished == "false" || item.is_finished == false || item.is_finished == undefined) && ["PLAN", "FAILED_PLAN"].indexOf(item.etype) != -1) {
 			item.is_finished = "false";
 		} else {
@@ -120,7 +120,7 @@ class EventsStorage extends MySimpleStorage {
 		if (item.etype != "PLAN") {
 			item["rec_pattern"] = item["rec_type"] = undefined;
 		}
-		// if(data.etype != "PLAN" && data.etype != "FAILED_PLAN"){
+		// if(serialized.etype != "PLAN" && serialized.etype != "FAILED_PLAN"){
 		// 	//we cleared the event_pid and event_length for FACT and SPENT
 		// 	item.event_length = item.event_pid = undefined;
 		// }
@@ -158,29 +158,29 @@ class EventsStorage extends MySimpleStorage {
 			selectTo = new Date(params.to);
 		}
 		return this._query_all_sql().then((rows) => {
-			const result = [];
+			const events_serialized = [];
 			for (var i = 0; i < rows.length; i++) {
 				const row = rows[i];
-				const event = this.db2dhtml(row);
-				if (selectFrom && event.end_date_dateobj < selectFrom) {
+				const event_serialized = this.db2dhtml(row);
+				if (selectFrom && event_serialized.end_date_dateobj < selectFrom) {
 					continue;
-				} if (selectTo && event.start_date_dateobj > selectTo) {
+				} if (selectTo && event_serialized.start_date_dateobj > selectTo) {
 					continue;
 				} else {
-					result.push(event);
+					events_serialized.push(event_serialized);
 				}
 			}
 
 			if (this._params.objectResult || this._params.collections) {
 				var res = {
-					data: result
+					data: events_serialized
 				};
 				if (this._params.collections) {
 					res.collections = this._params.collections
 				};
 				return res;
 			} else {
-				return result;
+				return events_serialized;
 			}
 
 		}).catch((err) => {
@@ -222,28 +222,28 @@ class EventsStorage extends MySimpleStorage {
 			date_yesterday.setMilliseconds(0);
 			var date_tomorrow = new Date(date_yesterday.valueOf() + 24 * 3600 * 1000);
 			for (var i = 0; i < rows.length; i++) {
-				const event = this.db2dhtml(rows[i]);
-				var is_planned = event.etype == "PLAN" || event.etype == "FAILED_PLAN";
-				if (selectFrom && event.end_date_dateobj < selectFrom) {
+				const event_serialized = this.db2dhtml(rows[i]);
+				var is_planned = event_serialized.etype == "PLAN" || event_serialized.etype == "FAILED_PLAN";
+				if (selectFrom && event_serialized.end_date_dateobj < selectFrom) {
 					continue;
-				} if (selectTo && event.start_date_dateobj > selectTo) {
+				} if (selectTo && event_serialized.start_date_dateobj > selectTo) {
 					continue;
 				}
-				if (is_planned && event.end_date_dateobj <= date_now) {
-					if (!event.is_finished || event.etype == "FAILED_PLAN") {
+				if (is_planned && event_serialized.end_date_dateobj <= date_now) {
+					if (!event_serialized.is_finished || event_serialized.etype == "FAILED_PLAN") {
 						failedAll += 1;
-						if (event.end_date_dateobj > date_yesterday && event.end_date_dateobj < date_tomorrow) {
+						if (event_serialized.end_date_dateobj > date_yesterday && event_serialized.end_date_dateobj < date_tomorrow) {
 							failedToday += 1;
 						}
 					}
 				}
-				if (event.is_finished) {
+				if (event_serialized.is_finished) {
 					if (is_planned) { successAll = successAll + 1; }
-					scoreNow += event.score;
-					if (event.end_date_dateobj > date_yesterday && event.end_date_dateobj < date_tomorrow) {
-						scoreToday += event.score;
-						if (event.score < 0) spentToday += event.score;
-						else earnedToday += event.score;
+					scoreNow += event_serialized.score;
+					if (event_serialized.end_date_dateobj > date_yesterday && event_serialized.end_date_dateobj < date_tomorrow) {
+						scoreToday += event_serialized.score;
+						if (event_serialized.score < 0) spentToday += event_serialized.score;
+						else earnedToday += event_serialized.score;
 						if (is_planned) {
 							successToday += 1;
 						}
@@ -272,11 +272,11 @@ class EventsStorage extends MySimpleStorage {
 		});
 	}
 
-	async insert_dummy_copy(data) {
-		if (data.id != undefined && data.id.indexOf("#") != -1) {
-			scheduler.recover_ev_from_dummy_copy(data);
+	async insert_dummy_copy(serialized) {
+		if (serialized.id != undefined && serialized.id.indexOf("#") != -1) {
+			scheduler.recover_ev_from_dummy_copy(serialized);
 		}
-		var item = this.dhtml2db(data);
+		var item = this.dhtml2db(serialized);
 		var this2 = this;
 		return await this._query_event_occur_exists_sql(item.event_pid, item.event_length).then(
 			rows => {
@@ -302,17 +302,17 @@ class EventsStorage extends MySimpleStorage {
 	}
 
 	// create new event
-	async insert(data) {
-		if ((data.id != undefined && String(data.id).indexOf("#") != -1) || data.event_pid != undefined) {
-			return this.insert_dummy_copy(data);
+	async insert(serialized) {
+		if ((serialized.id != undefined && String(serialized.id).indexOf("#") != -1) || serialized.event_pid != undefined) {
+			return this.insert_dummy_copy(serialized);
 		}
-		return super.insert(data, "myevents");
+		return super.insert(serialized, "myevents");
 	}
 
 	// update event
-	async update(id, data) {
-		data.id = parseInt(id);
-		var item = this.dhtml2db(data);
+	async update(id, serialized) {
+		serialized.id = parseInt(id);
+		var item = this.dhtml2db(serialized);
 		var this2 = this;
 		return this._update_sql(item).catch((err) => {
 			console.log('Error: ');
@@ -343,17 +343,17 @@ class EventsStorage extends MySimpleStorage {
 		var promises = [];
 		return this._query_all_unfinished_plan_sql().then((rows) => {
 			for (var i = 0; i < rows.length; i++) {
-				const event = this.db2dhtml(rows[i]);
-				if (event.end_date_dateobj < time_now) {
-					event.etype = "FAILED_PLAN";
-					promises.push(this.update(event.id, event));
-				} else if (event.rec_type != undefined && event.rec_type.length > 0 && event.rec_type != 'none') {
-					const event_occur = scheduler.mtrue_copy_series_event(event, date_provided, time_now);
-					if (event_occur != null) {
-						promises.push(this._query_event_occur_exists_sql(event_occur.event_pid, event_occur.event_length).then((rows) => {
+				const event_serialized = this.db2dhtml(rows[i]);
+				if (event_serialized.end_date_dateobj < time_now) {
+					event_serialized.etype = "FAILED_PLAN";
+					promises.push(this.update(event_serialized.id, event_serialized));
+				} else if (event_serialized.rec_type != undefined && event_serialized.rec_type.length > 0 && event_serialized.rec_type != 'none') {
+					const event_occur_serialized = scheduler.generate_virtual_occurence_event_from_series_and_date(event_serialized, date_provided, time_now);
+					if (event_occur_serialized != null) {
+						promises.push(this._query_event_occur_exists_sql(event_occur_serialized.event_pid, event_occur_serialized.event_length).then((rows) => {
 							if (rows.length == 0) {
-								event_occur.etype = "FAILED_PLAN";
-								this.insert(event_occur);
+								event_occur_serialized.etype = "FAILED_PLAN";
+								this.insert(event_occur_serialized);
 							}
 						}));
 					}
@@ -387,8 +387,9 @@ class EventsStorage extends MySimpleStorage {
 
 	async refreshExpenses(date_txt_provided) {
 		var date_provided = new Date(Date.parse(date_txt_provided));
-		await this.updateFailedPlan(date_provided);
-		date_txt_provided = MyUtils.localDateToFloatingTime(date_provided, false);
+		var res = await this.updateFailedPlan(date_provided);
+		if (res.action == "error")return res
+		date_txt_provided = MyUtils.localDateToFloatingTimeStr(date_provided, false);
 
 		var buf = "";
 		var fpath = path.join(process.env["OneDriveConsumer"], "Account.csv");

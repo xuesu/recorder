@@ -65,10 +65,14 @@ class MyUtils {
 	}
 
 	static absDateFromFloatingTime(dstr) {
-		return new Date(dstr + "Z");
+		return new Date(dstr.substring(0, 19) + "Z");
 	}
 
-	static localDateToFloatingTime(local_date_or_dstr, with_hour = true) {
+	static shiftlocalTimeStamp2utc0(t){
+		return t * 2 - new Date(new Date(t).toUTCString().substring(0, 25)).valueOf();
+	}
+
+	static localDateToFloatingTimeStr(local_date_or_dstr, with_hour = true) {
 		if (local_date_or_dstr == undefined) local_date_or_dstr = new Date();
 		if (typeof local_date_or_dstr === "string") local_date_or_dstr = new Date(local_date_or_dstr);
 		var date_str = local_date_or_dstr.getFullYear() + "-" + String(local_date_or_dstr.getMonth() + 1).padStart(2, '0') + "-" + String(local_date_or_dstr.getDate()).padStart(2, '0');
@@ -104,7 +108,7 @@ class MyUtils {
 		const localDate = new Date(dstr);
 		return {
 			date: localDate,
-			floating_date_str: this.localDateToFloatingTime(localDate, true),
+			floating_date_str: this.localDateToFloatingTimeStr(localDate, true),
 			abs_date_str: dstr,
 			timeshift: offset  // in minutes
 		};

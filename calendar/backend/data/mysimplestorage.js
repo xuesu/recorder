@@ -31,12 +31,12 @@ class MySimpleStorage {
 		this.alias2table_name = alias2table_name;
 	}
 
-	dhtml2db(data, table_name) {
+	dhtml2db(serialized, table_name) {
 		var params_related = this.param_relations[table_name];
 		var item = {};
 		for (var i = 0; i < params_related.length; i += 1) {
 			var param_name = params_related[i];
-			var param_value = data[param_name];
+			var param_value = serialized[param_name];
 			if (param_value == undefined) continue;
 			if (param_name.startsWith("is_")) {
 				if (typeof param_value != "string") {
@@ -54,13 +54,13 @@ class MySimpleStorage {
 					param_value = undefined;
 				}
 				if (param_value == undefined && param_name == "time_create") {
-					param_value = MyUtils.localDateToFloatingTime(new Date()); //we prefer floatingtime for we don't have urgent TOU scenes here
+					param_value = MyUtils.localDateToFloatingTimeStr(new Date()); //we prefer floatingtime for we don't have urgent TOU scenes here
 				} else {
-					if (param_name + "_timezoneoffset" in data && data[param_name + "_timezoneoffset"] != undefined && data[param_name + "_timezoneoffset"] != null) {
-						param_value = MyUtils.localDateToISO8601WithOffset(param_value, parseInt(data[param_name + "_timezoneoffset"]));
+					if (param_name + "_timezoneoffset" in serialized && serialized[param_name + "_timezoneoffset"] != undefined && serialized[param_name + "_timezoneoffset"] != null) {
+						param_value = MyUtils.localDateToISO8601WithOffset(param_value, parseInt(serialized[param_name + "_timezoneoffset"]));
 					}
 					else {
-						param_value = MyUtils.localDateToFloatingTime(param_value);
+						param_value = MyUtils.localDateToFloatingTimeStr(param_value);
 					}
 				}
 			}
@@ -326,14 +326,14 @@ class MySimpleStorage {
 			table_name = this.alias2table_name[table_name];
 		}
 		return this._query_all_sql(filter_params, extra_conditions, table_name).then((rows) => {
-			const result = [];
+			const results_serialized = [];
 			for (var i = 0; i < rows.length; i++) {
 				const row = rows[i];
-				const event = this.db2dhtml(row);
-				result.push(event);
+				const serialized = this.db2dhtml(row);
+				results_serialized.push(serialized);
 			}
 			return {
-				data: result,
+				data: results_serialized,
 				action: "query"
 			};
 		}).catch((err) => {
@@ -345,11 +345,11 @@ class MySimpleStorage {
 		});
 	}
 
-	async insert(data, table_name) {
+	async insert(serialized, table_name) {
 		if (!(table_name in this.param_relations)) {
 			table_name = this.alias2table_name[table_name];
 		}
-		var item = this.dhtml2db(data, table_name);
+		var item = this.dhtml2db(serialized, table_name);
 		return this._insert_sql(item, table_name).then(
 			function (item) {
 				return {
@@ -366,21 +366,21 @@ class MySimpleStorage {
 			});
 	}
 
-	async update(id, data, table_name) {
+	async update(id, serialized, table_name) {
 		if (!(table_name in this.param_relations)) {
 			table_name = this.alias2table_name[table_name];
 		}
 		var promises = [];
-		if (data instanceof Array) {
-			for (var subdata of data) {
-				subdata.id = parseInt(subdata.id);
-				subdata = this.dhtml2db(subdata, table_name);
-				promises.push(this._update_sql(subdata, table_name));
+		if (serialized instanceof Array) {
+			for (var subserialized of serialized) {
+				subserialized.id = parseInt(subserialized.id);
+				var item = this.dhtml2db(subserialized, table_name);
+				promises.push(this._update_sql(item, table_name));
 			}
 		} else {
-			data.id = parseInt(id);
-			data = this.dhtml2db(data, table_name);
-			promises.push(this._update_sql(data, table_name));
+			serialized.id = parseInt(id);
+			var item = this.dhtml2db(serialized, table_name);
+			promises.push(this._update_sql(item, table_name));
 		}
 		return Promise.all(promises).catch((err) => {
 			console.log('Error: ')

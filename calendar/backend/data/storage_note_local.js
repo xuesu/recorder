@@ -22,20 +22,20 @@ class StorageNote extends MySimpleStorage {
 			params);
 	}
 
-	async insert(data, table_name) {
+	async insert(serialized, table_name) {
 		if (!(table_name in this.param_relations)) {
 			table_name = this.alias2table_name[table_name];
 		}
-		if (data["date_create"] == undefined || Object.prototype.toString.call(data["date_create"]) != "[object Date]") {
-			data["date_create"] = new Date();
+		if (serialized["date_create"] == undefined || Object.prototype.toString.call(serialized["date_create"]) != "[object Date]") {
+			serialized["date_create"] = new Date();
 		}
-		if (data["is_proj_note"] == undefined) {
-			data["is_proj_note"] = "false";
+		if (serialized["is_proj_note"] == undefined) {
+			serialized["is_proj_note"] = "false";
 		}
-		if (data["pinned_level"] == undefined) {
-			data["pinned_level"] = -1;
+		if (serialized["pinned_level"] == undefined) {
+			serialized["pinned_level"] = -1;
 		}
-		return await super.insert(data, table_name);
+		return await super.insert(serialized, table_name);
 	}
 
 	query_all_notes_by_title_sql(title, is_pinned) {

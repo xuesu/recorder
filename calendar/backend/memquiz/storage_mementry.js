@@ -70,21 +70,21 @@ class StorageMemEntry extends MySimpleStorage {
             params);
     }
 
-    dhtml2db(data, table_name) {
-        var item = super.dhtml2db(data, table_name);
+    dhtml2db(serialized, table_name) {
+        var item = super.dhtml2db(serialized, table_name);
         var params_related = this.param_relations[table_name];
         for (var i = 0; i < params_related.length; i += 1) {
             var param_name = params_related[i];
-            if (data[param_name] == undefined) continue;
+            if (serialized[param_name] == undefined) continue;
             if (param_name == "group_ids") {
-                var param_value = data[param_name];
+                var param_value = serialized[param_name];
                 if (typeof param_value != "string") {
                     param_value = ";" + param_value.join(";") + ";";
                 }
                 item[param_name] = param_value;
             }
             else if (param_name == "test_histogram") {
-                var param_value = data[param_name];
+                var param_value = serialized[param_name];
                 item[param_name] = JSON.stringify(param_value);
             }
         }
@@ -111,12 +111,12 @@ class StorageMemEntry extends MySimpleStorage {
         return serialized;
     }
 
-    async insert(data, table_name) {
+    async insert(serialized, table_name) {
         if (!(table_name in this.param_relations)) {
             table_name = this.alias2table_name[table_name];
         }
-        if (this.param_relations[table_name].indexOf("time_create") != -1) data.time_create = new Date();
-        var item = this.dhtml2db(data, table_name);
+        if (this.param_relations[table_name].indexOf("time_create") != -1) serialized.time_create = new Date();
+        var item = this.dhtml2db(serialized, table_name);
         return super._insert_sql(item, table_name).then(
             function (item) {
                 return {
@@ -165,23 +165,23 @@ class StorageMemEntry extends MySimpleStorage {
 
     async importEntriesByCSV(fcontent, lecture_id) {
         var header = null;
-        var records = [];
+        var entries_serialized = [];
         var promises = [];
         const parser = csvparse.parse({ delimiter: ',', trim: true })
             .on('data', (r) => {
                 if (header == null) {
                     header = r;
                 } else {
-                    var item = { "lecture_id": lecture_id };
+                    var serialized = { "lecture_id": lecture_id };
                     for (var i = 0; i < r.length; i += 1) {
-                        if (header[i].length > 0) item[header[i]] = r[i];
+                        if (header[i].length > 0) serialized[header[i]] = r[i];
                     }
-                    if (item.name != undefined && item.name.length > 0) records.push(item);
+                    if (serialized.name != undefined && serialized.name.length > 0) entries_serialized.push(serialized);
                 }
             })
             .on('end', () => {
-                for (var i = 0; i < records.length; i += 1) {
-                    promises.push(this.insert(records[i], "mementries"));
+                for (var i = 0; i < entries_serialized.length; i += 1) {
+                    promises.push(this.insert(entries_serialized[i], "mementries"));
                 }
             });
         parser.write(fcontent);

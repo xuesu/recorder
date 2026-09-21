@@ -575,12 +575,12 @@ test("scheduler.repeat_date daily pattern generates consecutive days", () => {
 	assert.strictEqual(stack[1].start_date_dateobj.getDate(), 2);
 });
 
-test("scheduler.mtrue_copy_series_event returns occurrence within range", () => {
+test("scheduler.generate_virtual_occurence_event_from_series_and_date returns occurrence within range", () => {
 	const ev = makeSeries();
 	scheduler._min_date = new Date(2024, 0, 1);
 	scheduler._max_date = new Date(2024, 1, 15);
 	// date_provided = Jan 1 00:00, time_now = Jan 1 12:00 -> first occ (ends 11:00) matches
-	const copy = scheduler.mtrue_copy_series_event(ev, new Date(2024, 0, 1, 0, 0), new Date(2024, 0, 1, 12, 0));
+	const copy = scheduler.generate_virtual_occurence_event_from_series_and_date(ev, new Date(2024, 0, 1, 0, 0), new Date(2024, 0, 1, 12, 0));
 	assert.ok(copy !== null);
 	assert.strictEqual(Number(copy.event_pid), 1);
 	assert.strictEqual(copy.name, "WeeklySeries");
@@ -591,12 +591,12 @@ test("scheduler.mtrue_copy_series_event returns occurrence within range", () => 
 	assert.ok(copy.rec_type === undefined);
 });
 
-test("scheduler.mtrue_copy_series_event returns null when no occurrence in range", () => {
+test("scheduler.generate_virtual_occurence_event_from_series_and_date returns null when no occurrence in range", () => {
 	const ev = makeSeries();
 	scheduler._min_date = new Date(2024, 0, 1);
 	scheduler._max_date = new Date(2024, 1, 15);
 	// date_provided in 2025, time_now in 2024 -> no occurrence ends within [2025, 2024]
-	const copy = scheduler.mtrue_copy_series_event(ev, new Date(2025, 0, 1), new Date(2024, 0, 1, 0, 0));
+	const copy = scheduler.generate_virtual_occurence_event_from_series_and_date(ev, new Date(2025, 0, 1), new Date(2024, 0, 1, 0, 0));
 	assert.strictEqual(copy, null);
 });
 

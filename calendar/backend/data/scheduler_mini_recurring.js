@@ -1,17 +1,17 @@
 /**
  * Minimal dhtmlxScheduler - Recurring Events & Dummy Copy Logic Only
- * Keeps only: mtrue_copy_series_event, recover_ev_from_dummy_copy, and dependencies
+ * Keeps only: generate_virtual_occurence_event_from_series_and_date, recover_ev_from_dummy_copy, and dependencies
  */
 
 const MyUtils = require("./utils");
 
-var scheduler = {
+var min_recur_scheduler = {
 	_min_date: null,
 	_max_date: null,
 	start_on_monday: true
 };
 
-scheduler.date = {
+min_recur_scheduler.date = {
 	_add_days: function(date, inc) {
 		var ndate = new Date(date.valueOf());
 		ndate.setDate(ndate.getDate() + inc);
@@ -37,10 +37,10 @@ scheduler.date = {
 		var ndate = new Date(date.valueOf());
 		switch (mode) {
 			case "day":
-				ndate = scheduler.date._add_days(ndate, inc);
+				ndate = min_recur_scheduler.date._add_days(ndate, inc);
 				break;
 			case "week":
-				ndate = scheduler.date._add_days(ndate, inc * 7);
+				ndate = min_recur_scheduler.date._add_days(ndate, inc * 7);
 				break;
 			case "month":
 				ndate.setMonth(ndate.getMonth() + inc);
@@ -55,7 +55,7 @@ scheduler.date = {
 				ndate.setTime(ndate.getTime() + inc * 60 * 1000);
 				break;
 			default:
-				return scheduler.date["add_" + mode](date, inc, mode);
+				return min_recur_scheduler.date["add_" + mode](date, inc, mode);
 		}
 		return ndate;
 	},
@@ -69,7 +69,7 @@ scheduler.date = {
 	}
 };
 
-scheduler.isOneDayEvent = function(ev) {
+min_recur_scheduler.isOneDayEvent = function(ev) {
 	var checkEndDate = new Date(ev.end_date_dateobj.valueOf() - 1);
 	return (
 		ev.start_date_dateobj.getFullYear() === checkEndDate.getFullYear() &&
@@ -78,23 +78,22 @@ scheduler.isOneDayEvent = function(ev) {
 	) && ((ev.end_date_dateobj.valueOf() - ev.start_date_dateobj.valueOf()) < (1000 * 60 * 60 * 24));
 };
 
-scheduler._copy_dummy = function() {
+min_recur_scheduler._copy_dummy = function() {
 	var a = new Date(this.start_date_dateobj);
 	var b = new Date(this.end_date_dateobj);
 	this.start_date_dateobj = a;
-	this.start_date = MyUtils.localDateToFloatingTime(a);
 	this.end_date_dateobj = b;
-	this.end_date = MyUtils.localDateToFloatingTime(b);
+	this.event_length = this.event_pid = this.rec_pattern = this.rec_type = null;
 };
 
-scheduler._copy_event = function(ev) {
+min_recur_scheduler._copy_event = function(ev) {
 	this._copy_dummy.prototype = ev;
 	return new this._copy_dummy();
 };
 
 // ==================== DAYLIGHT SAVING TIME FIX ====================
 
-scheduler._fix_daylight_saving_date = function(start_date, end_date, ev, counter, default_date) {
+min_recur_scheduler._fix_daylight_saving_date = function(start_date, end_date, ev, counter, default_date) {
 	var shift = start_date.getTimezoneOffset() - end_date.getTimezoneOffset();
 	if (shift) {
 		if (shift > 0) {
@@ -110,15 +109,15 @@ scheduler._fix_daylight_saving_date = function(start_date, end_date, ev, counter
 
 // ==================== TRANSPOSE/RECURRENCE LOGIC ====================
 
-scheduler.transponse_size = {
+min_recur_scheduler.transponse_size = {
 	day: 1,
 	week: 7,
 	month: 1,
 	year: 12
 };
 
-scheduler.transpose_day_week = function(sd, list, cor, size, cor2) {
-	var cday = (sd.getDay() || (scheduler.start_on_monday ? 7 : 0)) - cor;
+min_recur_scheduler.transpose_day_week = function(sd, list, cor, size, cor2) {
+	var cday = (sd.getDay() || (min_recur_scheduler.start_on_monday ? 7 : 0)) - cor;
 	for (var i = 0; i < list.length; i++) {
 		if (list[i] > cday)
 			return sd.setDate(sd.getDate() + list[i] * 1 - cday - (size ? cor : cor2));
@@ -126,7 +125,7 @@ scheduler.transpose_day_week = function(sd, list, cor, size, cor2) {
 	this.transpose_day_week(sd, list, cor + size, null, cor);
 };
 
-scheduler.transpose_type = function(type) {
+min_recur_scheduler.transpose_type = function(type) {
 	var f = "transpose_" + type;
 	if (!this.date[f]) {
 		var str = type.split("_");
@@ -138,7 +137,7 @@ scheduler.transpose_type = function(type) {
 			var days = null;
 			if (str[4]) {
 				days = str[4].split(",");
-				if (scheduler.start_on_monday) {
+				if (min_recur_scheduler.start_on_monday) {
 					for (var i = 0; i < days.length; i++)
 						days[i] = (days[i] * 1) || 7;
 					days.sort();
@@ -150,14 +149,14 @@ scheduler.transpose_type = function(type) {
 				if (delta > 0)
 					nd.setDate(nd.getDate() + delta * step);
 				if (days)
-					scheduler.transpose_day_week(nd, days, 1, step);
+					min_recur_scheduler.transpose_day_week(nd, days, 1, step);
 			};
 
 			this.date[gf] = function(sd, inc) {
 				var nd = new Date(sd.valueOf());
 				if (days) {
 					for (var count = 0; count < inc; count++)
-						scheduler.transpose_day_week(nd, days, 0, step);
+						min_recur_scheduler.transpose_day_week(nd, days, 0, step);
 				} else
 					nd.setDate(nd.getDate() + inc * step);
 				return nd;
@@ -168,25 +167,25 @@ scheduler.transpose_type = function(type) {
 				if (delta >= 0)
 					nd.setMonth(nd.getMonth() + delta * step);
 				if (str[3])
-					scheduler.date.day_week(nd, str[2], str[3]);
+					min_recur_scheduler.date.day_week(nd, str[2], str[3]);
 			};
 
 			this.date[gf] = function(sd, inc) {
 				var nd = new Date(sd.valueOf());
 				nd.setMonth(nd.getMonth() + inc * step);
 				if (str[3])
-					scheduler.date.day_week(nd, str[2], str[3]);
+					min_recur_scheduler.date.day_week(nd, str[2], str[3]);
 				return nd;
 			};
 		}
 	}
 };
 
-scheduler.repeat_date = function(ev, stack, from, to, maxCount) {
+min_recur_scheduler.repeat_date = function(ev, stack, from, to, maxCount) {
 	from = from || this._min_date;
 	to = to || this._max_date;
 	var max = maxCount || -1;
-	var td = new Date(ev.start_date_dateobj.valueOf());
+	var td = new Date(ev.start_date);
 	var startHour = td.getHours();
 	var visibleCount = 0;
 
@@ -194,9 +193,9 @@ scheduler.repeat_date = function(ev, stack, from, to, maxCount) {
 		ev.rec_pattern = ev.rec_type.split("#")[0];
 
 	this.transpose_type(ev.rec_pattern);
-	scheduler.date["transpose_" + ev.rec_pattern](td, from);
+	min_recur_scheduler.date["transpose_" + ev.rec_pattern](td, from);
 
-	while (td < ev.start_date_dateobj || scheduler._fix_daylight_saving_date(td, from, ev, td, new Date(td.valueOf() + ev.event_length * 1000)).valueOf() <= from.valueOf() || td.valueOf() + ev.event_length * 1000 <= from.valueOf())
+	while (td < ev.start_date_dateobj || min_recur_scheduler._fix_daylight_saving_date(td, from, ev, td, new Date(td.valueOf() + ev.event_length * 1000)).valueOf() <= from.valueOf() || td.valueOf() + ev.event_length * 1000 <= from.valueOf())
 		td = this.date.add(td, 1, ev.rec_pattern);
 
 	while (td < to && td < ev.end_date_dateobj && (max < 0 || visibleCount < max)) {
@@ -205,24 +204,21 @@ scheduler.repeat_date = function(ev, stack, from, to, maxCount) {
 	 // unmodified element of series
 		var ted = new Date(td.valueOf() + ev.event_length * 1000);
 		var copy = this._copy_event(ev);
+		copy.name = ev.name;
 		copy.text = ev.text;
-		copy.start_date = MyUtils.localDateToFloatingTime(td);
+		copy.start_date = MyUtils.localDateToFloatingTimeStr(td);
 		copy.start_date_dateobj = td;
 		copy.event_pid = ev.id;
 		copy.id = ev.id + "#" + Math.ceil(timestamp / 1000);
-		copy.end_date = MyUtils.localDateToFloatingTime(ted);
+		copy.end_date = MyUtils.localDateToFloatingTimeStr(ted);
 		copy.end_date_dateobj = ted;
-		copy.end_date_dateobj = scheduler._fix_daylight_saving_date(copy.start_date_dateobj, copy.end_date_dateobj, ev, td, copy.end_date_dateobj);
+		copy.end_date_dateobj = min_recur_scheduler._fix_daylight_saving_date(copy.start_date_dateobj, copy.end_date_dateobj, ev, td, copy.end_date_dateobj);
 		copy._timed = this.isOneDayEvent(copy);
 		stack.push(copy);
 		visibleCount++;
 		td = this.date.add(td, 1, ev.rec_pattern);
 	}
 };
-scheduler.shift_tid2utc0 = function(tid_with_localtimezone, dateobj_with_localtimezone){
-	return tid_with_localtimezone * 2 - new Date(dateobj_with_localtimezone.toUTCString().substring(0, 25)).valueOf() / 1000;
-}
-
 // ==================== MAIN FUNCTIONS ====================
 
 /**
@@ -232,9 +228,9 @@ scheduler.shift_tid2utc0 = function(tid_with_localtimezone, dateobj_with_localti
  * @param {Date} time_now - Optional: upper bound for time check
  * @returns {Object|null} Dummy event copy or null if not found
  */
-scheduler.mtrue_copy_series_event = function(ev_series, date_provided, time_now) {
+min_recur_scheduler.generate_virtual_occurence_event_from_series_and_date = function(ev_series, date_provided, time_now) {
 	var stack = [];
-	scheduler.repeat_date(ev_series, stack);
+	min_recur_scheduler.repeat_date(ev_series, stack);
 	
 	var ev_dummy_copy = null;
 	for (var i = 0; i < stack.length; i += 1) {
@@ -249,7 +245,7 @@ scheduler.mtrue_copy_series_event = function(ev_series, date_provided, time_now)
 	}
 	
 	var id = ev_dummy_copy.id.split("#");
-	var tid = scheduler.shift_tid2utc0(parseInt(id[1]), ev_dummy_copy.start_date_dateobj);
+	var tid = MyUtils.shiftlocalTimeStamp2utc0(parseInt(id[1]) * 1000) / 1000;
 
 	ev_dummy_copy.id = null;
 	ev_dummy_copy.event_pid = ev_series.event_pid || id[0];
@@ -265,7 +261,7 @@ scheduler.mtrue_copy_series_event = function(ev_series, date_provided, time_now)
  * @param {Object} ev_dummy_copy - The dummy event copy
  * @returns {Object} Recovered event with series metadata
  */
-scheduler.recover_ev_from_dummy_copy = function(ev_dummy_copy) {
+min_recur_scheduler.recover_ev_from_dummy_copy = function(ev_dummy_copy) {
 	var id = ev_dummy_copy.id.split("#");
 	var tid = id[1];
 
@@ -278,4 +274,4 @@ scheduler.recover_ev_from_dummy_copy = function(ev_dummy_copy) {
 };
 
 // ==================== EXPORT ====================
-module.exports = scheduler;
+module.exports = min_recur_scheduler;

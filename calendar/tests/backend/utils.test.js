@@ -24,12 +24,12 @@ test("MyUtils.splitLine4CSV handles quotes", () => {
 
 test("MyUtils.localDateToFloatingTime", () => {
 	const d = new Date(2024, 0, 5, 9, 5);
-	assert.strictEqual(MyUtils.localDateToFloatingTime(d, true), "2024-01-05 09:05");
-	assert.strictEqual(MyUtils.localDateToFloatingTime(d, false), "2024-01-05");
+	assert.strictEqual(MyUtils.localDateToFloatingTimeStr(d, true), "2024-01-05 09:05");
+	assert.strictEqual(MyUtils.localDateToFloatingTimeStr(d, false), "2024-01-05");
 });
 
 test("MyUtils.localDateToFloatingTime accepts string", () => {
-	assert.strictEqual(MyUtils.localDateToFloatingTime("2024-06-07 08:30", true), "2024-06-07 08:30");
+	assert.strictEqual(MyUtils.localDateToFloatingTimeStr("2024-06-07 08:30", true), "2024-06-07 08:30");
 });
 
 test("MyUtils.localDateFromFloatingTime", () => {
@@ -44,7 +44,7 @@ test("MyUtils.localDateToISO8601WithOffset round-trips with machine offset", () 
 	const back = MyUtils.localDatefromISO8601WithOffset(iso);
 	assert.strictEqual(back.timeshift, -d.getTimezoneOffset());
 	assert.strictEqual(back.date.getTime(), d.getTime());
-	assert.strictEqual(back.floating_date_str, MyUtils.localDateToFloatingTime(d, true));
+	assert.strictEqual(back.floating_date_str, MyUtils.localDateToFloatingTimeStr(d, true));
 });
 
 test("MyUtils.absDateToFloatingTime uses UTC", () => {
